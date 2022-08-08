@@ -32,4 +32,9 @@ public class Cell : MonoBehaviour
         return name;
     }
 
+    public Vector3 GetLocation()
+    {
+        return gameObject.transform.position;
+    }
+
 }
