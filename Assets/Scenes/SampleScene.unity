@@ -152,7 +152,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2bb5783bcf485a848879bd2e25b5de26, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  worldGeography: {fileID: 994572456}
 --- !u!4 &333132758
 Transform:
   m_ObjectHideFlags: 0
@@ -444,7 +443,7 @@ MonoBehaviour:
   m_OverrideTileSize: 0
   m_TileSize: 256
   m_OverrideVoxelSize: 0
-  m_VoxelSize: 0.05
+  m_VoxelSize: 0.083333336
   m_MinRegionArea: 2
   m_NavMeshData: {fileID: 0}
   m_BuildHeightMesh: 0
