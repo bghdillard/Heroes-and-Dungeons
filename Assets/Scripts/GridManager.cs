@@ -12,12 +12,14 @@ public class GridManager : MonoBehaviour
     public static int activeLayer;
     private static GameObject worldGeography;
     private static Queue<Order> priorityQueue;
+    private static List<Order> activeOrders;
 
     // Start is called before the first frame update
     void Start()
     {
         worldGeography = GameObject.Find("WorldGeography");
         priorityQueue = new Queue<Order>();
+        activeOrders = new List<Order>();
         Instantiate(Resources.Load<GameObject>("Ground"), worldGeography.transform).layer = 6;
         activeLayer = 3;
         grid = new Cell[100, 4, 100];
@@ -32,6 +34,53 @@ public class GridManager : MonoBehaviour
     public static Queue<Order> GetQueue()
     {
         return priorityQueue;
+    }
+
+    public static void AddtoList(Order toAdd)
+    {
+        activeOrders.Add(toAdd);
+    }
+
+    public static void RemoveFromList(Order toRemove)
+    {
+        activeOrders.Remove(toRemove);
+    }
+
+    public static bool ListContains(Order toCheck)
+    {
+        return activeOrders.Contains(toCheck);
+    }
+
+    public static bool QueueContains(Order toCheck)
+    {
+        return priorityQueue.Contains(toCheck);
+    }
+
+    public static void CancelOrder(Order toCancel)
+    {
+        if (QueueContains(toCancel)) //If the queue contains the order, remove the order from the queue
+        {
+            Queue<Order> temp = new Queue<Order>();
+            foreach (Order order in priorityQueue)
+            {
+                if (order == toCancel) continue;
+                temp.Enqueue(order);
+            }
+            priorityQueue = temp;
+        }
+        else if (ListContains(toCancel)) //If the list contains the order, remove the order from the list and stop the builder
+        {
+            foreach (Order order in activeOrders)
+            {
+                if (order.Equals(toCancel))
+                {
+                    order.Cancel();
+                    break;
+                }
+            }
+            activeOrders.Remove(toCancel);
+        }
+        else Debug.Log("Canceled Order not found"); //If neither contain the order, we have a problem
     }
 
     public static bool CheckAdjacent(Cell toCheck) //Checks to see if the cell attempting to be accessed can be accessed
@@ -81,11 +130,5 @@ public class GridManager : MonoBehaviour
         else temp.layer = 8;
         Destroy(toUpdate.gameObject);
         worldGeography.GetComponent<NavMeshSurface>().BuildNavMesh();
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
 }

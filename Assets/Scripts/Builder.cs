@@ -8,7 +8,6 @@ public class Builder : MonoBehaviour
 
     private Order CurrOrder;
     private NavMeshAgent agent;
-    private Coroutine toStop;
     private bool orderStarted;
 
     private void Awake()
@@ -36,7 +35,11 @@ public class Builder : MonoBehaviour
                     Debug.Log("Reached Destination");
                     agent.SetDestination(transform.position); //If so, stop moving and begin work;
                     orderStarted = true;
-                    toStop = StartCoroutine(Build());
+                    StartCoroutine(Build());
+                }
+                else //If not in range of the cell, recalculate the path
+                {
+                    agent.SetDestination(agent.destination);
                 }
             }
         }
@@ -59,7 +62,7 @@ public class Builder : MonoBehaviour
         Vector3 closest = new Vector3();
         float closestDistance = float.MaxValue;
         NavMeshPath path = new NavMeshPath();
-        for (int i = x - 1; i < x + 2; i++)
+        for (int i = x - 1; i < x + 2; i++) //Find the closest adjacent point to the target cell from the current position
         {
             if (NavMesh.CalculatePath(transform.position, new Vector3(i, location.y, z), agent.areaMask, path)){
                 float distance = Vector3.Distance(transform.position, path.corners[0]);
@@ -89,6 +92,8 @@ public class Builder : MonoBehaviour
         }
         agent.SetDestination(closest);
         orderStarted = false;
+        GridManager.AddtoList(CurrOrder);
+        CurrOrder.SetBuilder(this);
     }
 
     IEnumerator Build()
@@ -105,7 +110,12 @@ public class Builder : MonoBehaviour
         GridManager.UpdateGrid(CurrOrder.GetLocation(), CurrOrder.GetBuild());//now that we're done, remove the order and change the cell
         CurrOrder = null;
         Debug.Log("Build End");
-        StopCoroutine(toStop);
+    }
+
+    public void CancelOrder() //Cancel the active order
+    {
+        agent.SetDestination(transform.position);
+        CurrOrder = null;
     }
 
 }

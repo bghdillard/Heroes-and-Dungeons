@@ -8,6 +8,7 @@ public class Order
     private string name;
     private Cell location;
     private string toDo;
+    private Builder builder;
 
     public Order(string name, Cell location)
     {
@@ -33,5 +34,31 @@ public class Order
     public string GetBuild()
     {
         return toDo;
+    }
+
+    public void Cancel()
+    {
+        builder.CancelOrder();
+    }
+
+    public void SetBuilder(Builder toSet)
+    {
+        builder = toSet;
+    }
+
+    public override bool Equals(object obj)
+    {
+        //Check for null and compare types.
+        if ((obj == null) || !GetType().Equals(obj.GetType())) return false;
+        else
+        {
+            Order toCheck = (Order) obj;
+            return location == toCheck.GetLocation();
+        }
+    }
+
+    public override int GetHashCode()
+    {
+        return location.GetHashCode();
     }
 }
