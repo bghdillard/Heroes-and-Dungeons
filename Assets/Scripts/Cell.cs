@@ -9,6 +9,11 @@ public class Cell : MonoBehaviour
     private List<string> traits;
     [SerializeField]
     private string name;
+    public bool changesStats;
+    [SerializeField]
+    private List<string> statsChanged;
+    [SerializeField]
+    private List<int> statsChangedAmount;
 
 
     public bool TraitsContains(string toCheck)
@@ -24,6 +29,16 @@ public class Cell : MonoBehaviour
     public Vector3 GetLocation()
     {
         return gameObject.transform.position;
+    }
+
+    public List<string> getStatsChanged()
+    {
+        return statsChanged;
+    }
+
+    public List<int> GetStatsChangedAmount()
+    {
+        return statsChangedAmount;
     }
 
 }

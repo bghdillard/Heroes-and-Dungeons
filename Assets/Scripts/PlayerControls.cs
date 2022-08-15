@@ -19,12 +19,13 @@ public class PlayerControls : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetMouseButtonDown(1) && !buildUI.activeSelf) buildUI.SetActive(true);
+        if (Input.GetMouseButtonDown(1) && !buildUI.activeSelf) buildUI.SetActive(!buildUI.activeSelf);
         if (Input.GetMouseButtonDown(0))
         {
             RaycastHit hit = new RaycastHit();
             LayerMask mask = LayerMask.GetMask("Active Layer");
-            if (Physics.Raycast(GameObject.Find("Main Camera").GetComponent<Camera>().ScreenPointToRay(Input.mousePosition), out hit, 300, mask) && hit.collider.gameObject.layer == 6)
+            if (Physics.Raycast(GameObject.Find("Main Camera").GetComponent<Camera>().ScreenPointToRay(Input.mousePosition), out hit, 300, mask)
+                && hit.collider.gameObject.layer == 6 && hit.collider.GetComponent<Cell>() != null)
             {
                 if (hit.collider.GetComponent<Cell>().GetName() != toBuild)
                 {
@@ -36,5 +37,10 @@ public class PlayerControls : MonoBehaviour
             }
             else Debug.Log(hit.collider.gameObject.layer);
         }
+    }
+
+    public void UpdateToBuild(string toUpdate)
+    {
+        toBuild = toUpdate;
     }
 }
