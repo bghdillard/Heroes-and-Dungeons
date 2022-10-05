@@ -35,9 +35,10 @@ public class Builder : MonoBehaviour
                     Debug.Log("Reached Destination");
                     agent.SetDestination(transform.position); //If so, stop moving and begin work;
                     orderStarted = true;
-                    StartCoroutine(Build());
+                    if (CurrOrder.GetName() == "buildCell") StartCoroutine(BuildCell());
+                    else if (CurrOrder.GetName() == "buildItem") StartCoroutine(BuildItem());
                 }
-                else //If not in range of the cell, recalculate the path
+                else //If not in range of the cell, recalculate the path (I don't know at this point if this'll be necessary, or, on top of that, if it'll get expensive, so keep that in mind me)
                 {
                     agent.SetDestination(agent.destination);
                 }
@@ -96,13 +97,13 @@ public class Builder : MonoBehaviour
         CurrOrder.SetBuilder(this);
     }
 
-    IEnumerator Build()
+    IEnumerator BuildCell()
     {
         Debug.Log("Build Begin");
         WaitForSeconds wait = new WaitForSeconds(1);
         for(int i = 0; i < 4; i++)
         {
-            //we'll use have an animator controller here to "mine" the cell, and send something to the cell to visual update the mining progress
+            //we'll use have an animator controller here to "mine" the cell, and send something to the cell to visually update the mining progress but those are future problems
             Debug.Log("Mining Progress: " + i);
             yield return wait;
         }
@@ -110,6 +111,21 @@ public class Builder : MonoBehaviour
         GridManager.UpdateGrid(CurrOrder.GetLocation(), CurrOrder.GetBuild());//now that we're done, remove the order and change the cell
         CurrOrder = null;
         Debug.Log("Build End");
+    }
+    IEnumerator BuildItem()
+    {
+        Debug.Log("Build Item Begin");
+        WaitForSeconds wait = new WaitForSeconds(1);
+        for (int i = 0; i < 4; i++)
+        {
+            //we'll use have an animator controller here to "build" the item, and send something to the location to visually update the building progress but those are future problems
+            Debug.Log("Building Progress: " + i);
+            yield return wait;
+        }
+        Debug.Log("Building progress End");
+        GridManager.UpdateItemGrid(CurrOrder.GetLocation(), CurrOrder.GetBuild(), CurrOrder.GetRotation());//now that we're done, remove the order and add the item
+        CurrOrder = null;
+        Debug.Log("Build Item End");
     }
 
     public void CancelOrder() //Cancel the active order

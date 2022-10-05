@@ -8,13 +8,13 @@ public class Cell : MonoBehaviour
     [SerializeField]
     private List<string> traits;
     [SerializeField]
-    private string name;
-    public bool changesStats;
-    [SerializeField]
-    private List<string> statsChanged;
-    [SerializeField]
-    private List<int> statsChangedAmount;
+    private string cellName;
+    private List<GameObject> items;
 
+    private void Awake()
+    {
+        items = new List<GameObject>();
+    }
 
     public bool TraitsContains(string toCheck)
     {
@@ -23,7 +23,7 @@ public class Cell : MonoBehaviour
 
     public string GetName()
     {
-        return name;
+        return cellName;
     }
 
     public Vector3 GetLocation()
@@ -31,14 +31,18 @@ public class Cell : MonoBehaviour
         return gameObject.transform.position;
     }
 
-    public List<string> getStatsChanged()
+    public List<GameObject> GetItems()
     {
-        return statsChanged;
+        return items;
     }
 
-    public List<int> GetStatsChangedAmount()
+    public void AddItem(GameObject toAdd)
     {
-        return statsChangedAmount;
+        items.Add(toAdd);
     }
 
+    public void RemoveItem(GameObject toRemove)
+    {
+        items.Remove(toRemove);
+    }
 }

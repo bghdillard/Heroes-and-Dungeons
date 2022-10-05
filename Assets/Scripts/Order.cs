@@ -9,18 +9,23 @@ public class Order
     private Cell location;
     private string toDo;
     private Builder builder;
+    private int rotation;
 
-    public Order(string name, Cell location)
-    {
-        this.name = name;
-        this.location = location;
-    }
     public Order (string name, Cell location, string toDo)
     {
         this.name = name;
         this.location = location;
         this.toDo = toDo;
     }
+
+    public Order(string name, Cell location, string toDo, int rotation)
+    {
+        this.name = name;
+        this.location = location;
+        this.toDo = toDo;
+        this.rotation = rotation;
+    }
+
     public string GetName()
     {
         return name;
@@ -34,6 +39,11 @@ public class Order
     public string GetBuild()
     {
         return toDo;
+    }
+
+    public int GetRotation()
+    {
+        return rotation;
     }
 
     public void Cancel()
@@ -53,12 +63,13 @@ public class Order
         else
         {
             Order toCheck = (Order) obj;
-            return location == toCheck.GetLocation();
+            return location == toCheck.GetLocation() && name == toCheck.GetName();
         }
     }
 
     public override int GetHashCode()
     {
-        return location.GetHashCode();
+        Debug.Log("Order.GetHashCode called"); //put a debug here just in case... if this is an issue, hopefully this'll key me in pretty quickly
+        return location.GetHashCode() + name.GetHashCode(); //this may be problematic, but I don't really know enough about hashcodes to immediately know
     }
 }

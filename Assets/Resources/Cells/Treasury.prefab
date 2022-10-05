@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 9056025833217389181}
   - component: {fileID: -5192034322300158024}
   m_Layer: 0
-  m_Name: Empty
+  m_Name: Treasury
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -31,7 +31,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 3
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!65 &9056025833217389181
 BoxCollider:
@@ -61,4 +61,5 @@ MonoBehaviour:
   traits:
   - Transparent
   - Traversable
-  cellName: Empty
+  - Gold
+  cellName: Treasury

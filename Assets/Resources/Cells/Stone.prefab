@@ -112,4 +112,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   traits:
   - Opaque
-  name: Stone
+  cellName: Stone
