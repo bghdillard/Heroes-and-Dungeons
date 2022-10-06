@@ -16,6 +16,10 @@ public class GridManager : MonoBehaviour
     private static Dictionary<string, int> dungeonStats;
     private static Dictionary<string, List<Container>> containers;
 
+    public float xOffset;
+    public float yOffset;
+    public float seed;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -39,7 +43,7 @@ public class GridManager : MonoBehaviour
         Instantiate(Resources.Load<GameObject>("Ground"), worldGeography.transform).layer = 6;
         activeLayer = 3;
         grid = new Cell[100, 4, 100];
-        StartCoroutine(DungeonBuilder.BuildGrid(grid, activeLayer, worldGeography));
+        StartCoroutine(DungeonBuilder.BuildGrid(grid, activeLayer, worldGeography, xOffset, yOffset, seed));
     }
 
     public static void AddtoQueue(Order toAdd)
