@@ -854,6 +854,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2bb5783bcf485a848879bd2e25b5de26, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  xOffset: 150
+  yOffset: 150
+  seed: 0.105
 --- !u!4 &333132758
 Transform:
   m_ObjectHideFlags: 0
@@ -1608,6 +1611,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 869294096}
   m_CullTransparentMesh: 1
+--- !u!1 &884834396
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 884834397}
+  m_Layer: 0
+  m_Name: CellHolder
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &884834397
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 884834396}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 11
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &910921599
 GameObject:
   m_ObjectHideFlags: 0
@@ -1823,6 +1857,7 @@ GameObject:
   m_Component:
   - component: {fileID: 994572457}
   - component: {fileID: 994572458}
+  - component: {fileID: 994572459}
   m_Layer: 0
   m_Name: WorldGeography
   m_TagString: Untagged
@@ -1863,7 +1898,7 @@ MonoBehaviour:
   m_Center: {x: 0, y: 2, z: 0}
   m_LayerMask:
     serializedVersion: 2
-    m_Bits: 448
+    m_Bits: 2147483647
   m_UseGeometry: 0
   m_DefaultArea: 0
   m_IgnoreNavMeshAgent: 1
@@ -1875,6 +1910,22 @@ MonoBehaviour:
   m_MinRegionArea: 2
   m_NavMeshData: {fileID: 0}
   m_BuildHeightMesh: 0
+--- !u!114 &994572459
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 994572456}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 35e95dc5ff2b64380880dd7ac5922847, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Size: {x: 102, y: 1, z: 102}
+  m_Center: {x: 50, y: 3, z: 50}
+  m_Area: 1
+  m_AffectedAgents: ffffffff
 --- !u!1 &1115437883
 GameObject:
   m_ObjectHideFlags: 0

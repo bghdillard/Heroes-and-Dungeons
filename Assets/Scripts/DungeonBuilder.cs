@@ -6,7 +6,7 @@ using Unity.AI.Navigation;
 
 public static class DungeonBuilder
 {
-    public static IEnumerator BuildGrid(Cell[,,] grid, int activeLayer, GameObject worldGeography, float xOffset, float yOffset, float seed) //In the future, might use this to randomize the placement of, say, for example, gold and metal ores, and other special resources. Hey, past me, guess what... You're Right!
+    public static IEnumerator BuildGrid(Cell[,,] grid, int activeLayer, GameObject worldGeography, GameObject cellHolder, float xOffset, float yOffset, float seed) //In the future, might use this to randomize the placement of, say, for example, gold and metal ores, and other special resources. Hey, past me, guess what... You're Right!
     {
         GameObject temp;
         int goldCount = 0;
@@ -22,7 +22,7 @@ public static class DungeonBuilder
                     if (0.74 < toUse && toUse < 0.81 || 0.86 < toUse && toUse < 0.96) //generate gold
                     {
                         goldCount++;
-                        temp = Object.Instantiate(Resources.Load<GameObject>("Cells/Gold Ore"), worldGeography.transform);
+                        temp = Object.Instantiate(Resources.Load<GameObject>("Cells/Gold Ore"), cellHolder.transform);
                         grid[x, y, z] = temp.GetComponent<Cell>();
                         temp.transform.position = new Vector3(x, y, z);
                         if (y == activeLayer) temp.layer = 6;
@@ -31,7 +31,7 @@ public static class DungeonBuilder
                     else if (0.56 < toUse && toUse < 0.59 || 0.61 < toUse && toUse < 0.66) //generate iron
                     {
                         ironCount++;
-                        temp = Object.Instantiate(Resources.Load<GameObject>("Cells/Iron Ore"), worldGeography.transform);
+                        temp = Object.Instantiate(Resources.Load<GameObject>("Cells/Iron Ore"), cellHolder.transform);
                         grid[x, y, z] = temp.GetComponent<Cell>();
                         temp.transform.position = new Vector3(x, y, z);
                         if (y == activeLayer) temp.layer = 6;
@@ -42,14 +42,14 @@ public static class DungeonBuilder
                         stoneCount++;
                         if (y == activeLayer) //If at the top of the dungeon, use a stone that prevents a navmesh from generating on top
                         {
-                            temp = Object.Instantiate(Resources.Load<GameObject>("Cells/Impassable Stone"), worldGeography.transform);
+                            temp = Object.Instantiate(Resources.Load<GameObject>("Cells/Impassable Stone"), cellHolder.transform);
                             grid[x, y, z] = temp.GetComponent<Cell>();
                             temp.transform.position = new Vector3(x, y, z);
                             temp.layer = 6;
                         }
                         else
                         {
-                            temp = Object.Instantiate(Resources.Load<GameObject>("Cells/Stone"), worldGeography.transform); //On game start, set all possible slots to plain stone.
+                            temp = Object.Instantiate(Resources.Load<GameObject>("Cells/Stone"), cellHolder.transform); //On game start, set all possible slots to plain stone.
                             grid[x, y, z] = temp.GetComponent<Cell>();
                             temp.transform.position = new Vector3(x, y, z);
                             temp.layer = 8; //set to be invisible and non interactive
@@ -62,7 +62,7 @@ public static class DungeonBuilder
         GameObject camera = GameObject.Find("Main Camera");
         camera.transform.position = new Vector3(-53, activeLayer * 4, 53);
         camera.transform.LookAt(new Vector3(-49, activeLayer * 2, 49));
-        worldGeography.transform.GetComponent<NavMeshSurface>().BuildNavMesh();
+        worldGeography.transform.GetComponent<NavMeshSurface>().BuildNavMesh(); 
         for (int i = 0; i < 4; i++)
         {
             temp = Object.Instantiate(Resources.Load<GameObject>("Undead/Builder"));

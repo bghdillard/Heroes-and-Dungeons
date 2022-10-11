@@ -10,11 +10,14 @@ public class GridManager : MonoBehaviour
     private static Cell[,  ,] grid; 
     [HideInInspector]
     public static int activeLayer;
-    private static GameObject worldGeography;
+    private static GameObject worldGeography; // world geography will manage the navmesh
+    private static GameObject cellHolder; //cell holder will keep track of the cells for the purposes of interacting and visuals
     private static Queue<Order> priorityQueue;
     private static List<Order> activeOrders;
     private static Dictionary<string, int> dungeonStats;
     private static Dictionary<string, List<Container>> containers;
+    private static bool updateMesh;
+    private static List<NavMeshBuildSource> sources;
 
     public float xOffset;
     public float yOffset;
@@ -24,6 +27,7 @@ public class GridManager : MonoBehaviour
     void Start()
     {
         worldGeography = GameObject.Find("WorldGeography");
+        cellHolder = GameObject.Find("CellHolder");
         priorityQueue = new Queue<Order>();
         activeOrders = new List<Order>();
         dungeonStats = new Dictionary<string, int>() //Cells will add and subtract to here to keep track of important stats
@@ -40,10 +44,25 @@ public class GridManager : MonoBehaviour
             {"Ore", new List<Container>()},
             {"Weapons", new List<Container>()}
         };
-        Instantiate(Resources.Load<GameObject>("Ground"), worldGeography.transform).layer = 6;
+        Instantiate(Resources.Load<GameObject>("Special/Ground"), worldGeography.transform).layer = 6;
+        updateMesh = false;
         activeLayer = 3;
         grid = new Cell[100, 4, 100];
-        StartCoroutine(DungeonBuilder.BuildGrid(grid, activeLayer, worldGeography, xOffset, yOffset, seed));
+        StartCoroutine(DungeonBuilder.BuildGrid(grid, activeLayer, worldGeography,cellHolder, xOffset, yOffset, seed));
+    }
+
+    void LateUpdate()
+    {
+        if (updateMesh)
+        {
+            updateMesh = false;
+            StartCoroutine(UpdateMesh());
+        }
+    }
+
+    public static void SetSources(List<NavMeshBuildSource> toSet)
+    {
+        sources = toSet;
     }
 
     public static void AddtoQueue(Order toAdd)
@@ -137,19 +156,47 @@ public class GridManager : MonoBehaviour
         int x =  (int)location.x;
         int y = (int) location.y;
         int z = (int) location.z;
-        GameObject temp = Instantiate(Resources.Load<GameObject>("Cells/" + toFetch), worldGeography.transform);
+        GameObject temp = Instantiate(Resources.Load<GameObject>("Cells/" + toFetch), cellHolder.transform);
         grid[x, y, z] = temp.GetComponent<Cell>();
         temp.transform.position = location;
         if (y == activeLayer)
         {
             Debug.Log("Built on ActiveLayer");
             temp.layer = 6;
-            if (temp.GetComponent<Cell>().TraitsContains("Transparent")) grid[x, y-1, z].gameObject.layer = 7;
+            if (temp.GetComponent<Cell>().TraitsContains("Transparent") && !temp.GetComponent<Cell>().TraitsContains("Traversable")) grid[x, y-1, z].gameObject.layer = 7;
         }
         else if (y == activeLayer - 1 && grid[x, y + 1, z].TraitsContains("Transparent")) temp.layer = 7;
         else temp.layer = 8;
         Destroy(toUpdate.gameObject);
-        worldGeography.GetComponent<NavMeshSurface>().BuildNavMesh(); // I want to come back here to see if I can find a more cost-effective way of doing this. I would love to see if there was a way to just add a single 1x1 cube to the existing mesh
+        Debug.Log(worldGeography.GetComponent<NavMeshSurface>().collectObjects);
+        if (temp.GetComponent<Cell>().TraitsContains("Traversable"))
+        {
+            GameObject floor = Instantiate(Resources.Load<GameObject>("Special/Floor"), worldGeography.transform);
+            floor.transform.position = new Vector3(x, y - 0.5f, z);
+        }
+        //updateMesh = true;
+        worldGeography.GetComponent<NavMeshSurface>().UpdateNavMesh(worldGeography.GetComponent<NavMeshSurface>().navMeshData); // I want to come back here to see if I can find a more cost-effective way of doing this. I would love to see if there was a way to just add a single 1x1 cube to the existing mesh
+    }
+
+    private static IEnumerator UpdateMesh()
+    {
+        var operation = NavMeshBuilder.UpdateNavMeshDataAsync(
+        worldGeography.GetComponent<NavMeshSurface>().navMeshData,
+        worldGeography.GetComponent<NavMeshSurface>().GetBuildSettings(),
+        sources,
+        new Bounds(Vector3.zero, new Vector3(1000, 1000, 1000)) // set these accordingly
+    );
+        do { yield return null; } while (!operation.isDone);
+        /*
+        AsyncOperation operation = worldGeography.GetComponent<NavMeshSurface>().UpdateNavMesh(worldGeography.GetComponent<NavMeshSurface>().navMeshData);
+        Debug.Log(operation.isDone);
+        while (!operation.isDone)
+        {
+            Debug.Log("still working");
+            Debug.Log("Progress: " + operation.progress);
+            yield return null;
+        }
+        */
     }
 
     private static void UpdateResources(Container updateFrom)
