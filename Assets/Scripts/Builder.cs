@@ -46,10 +46,14 @@ public class Builder : MonoBehaviour
         }
         else
         {
-            if (GridManager.GetQueue().TryDequeue(out Order toDo)) //If no current order, try and get a new order from the queue in the grid manager;
+            if (GridManager.GetHighQueue().TryDequeue(out Order toDo)) //If no current order, try and get a new order from the queue in the grid manager;
             {
                 if (GridManager.CheckAdjacent(toDo.GetLocation())) SetOrder(toDo); //if in order is recieved, make sure it can be accessed, and, if it can, set it to be active;
-                else GridManager.GetQueue().Enqueue(toDo); //if it can't be accessed, put it back in the queue;
+                else GridManager.GetHighQueue().Enqueue(toDo); //if it can't be accessed, put it back in the queue;
+            }
+            if (CurrOrder == null) //If we didn't get an order from the high priority queue, check the low priority;
+            {
+                if (GridManager.GetLowQueue().TryDequeue(out toDo)) SetOrder(toDo); //In theory, all these orders should be accessable;
             }
         }
     }
@@ -57,41 +61,57 @@ public class Builder : MonoBehaviour
     private void SetOrder(Order toDo) //sets the destination of the nav mesh agent to reach the current order, as well as sets the order to be active;
     {
         CurrOrder = toDo;
-        Vector3 location = toDo.GetLocation().transform.position;
-        int x = (int)location.x;
-        int z = (int)location.z;
-        Vector3 closest = new Vector3();
-        float closestDistance = float.MaxValue;
-        NavMeshPath path = new NavMeshPath();
-        for (int i = x - 1; i < x + 2; i++) //Find the closest adjacent point to the target cell from the current position
+        if (toDo.GetName() == "buildItem" || toDo.GetName() == "buildCell") //If the order is for building...
         {
-            if (NavMesh.CalculatePath(transform.position, new Vector3(i, location.y, z), agent.areaMask, path)){
-                float distance = Vector3.Distance(transform.position, path.corners[0]);
-                for(int y = 1; y < path.corners.Length; y++)
+            Vector3 location = toDo.GetLocation().transform.position;
+            int x = (int)location.x;
+            int z = (int)location.z;
+            Vector3 closest = new Vector3();
+            float closestDistance = float.MaxValue;
+            NavMeshPath path = new NavMeshPath();
+            for (int i = x - 1; i < x + 2; i++) //Find the closest adjacent point to the target cell from the current position
+            {
+                if (NavMesh.CalculatePath(transform.position, new Vector3(i, location.y, z), agent.areaMask, path))
                 {
-                    distance += Vector3.Distance(path.corners[y - 1], path.corners[y]);
+                    Debug.Log("X path calculated");
+                    float distance = Vector3.Distance(transform.position, path.corners[0]);
+                    for (int y = 1; y < path.corners.Length; y++)
+                    {
+                        distance += Vector3.Distance(path.corners[y - 1], path.corners[y]);
+                    }
+                    if (distance < closestDistance)
+                    {
+                        closest = new Vector3(i, location.y, z);
+                        closestDistance = distance;
+                    }
                 }
-                if(distance < closestDistance)
-                {
-                    closest = new Vector3(i, location.y, z);
-                }
+                else Debug.Log("X path failed");
             }
+            for (int i = z - 1; i < z + 2; i++) //mention this to mama for fun
+            {
+                if (NavMesh.CalculatePath(transform.position, new Vector3(x, location.y, i), agent.areaMask, path))
+                {
+                    Debug.Log("Z path calculated");
+                    float distance = Vector3.Distance(transform.position, path.corners[0]);
+                    for (int y = 1; y < path.corners.Length; y++)
+                    {
+                        distance += Vector3.Distance(path.corners[y - 1], path.corners[y]);
+                    }
+                    if (distance < closestDistance)
+                    {
+                        closest = new Vector3(x, location.y, i);
+                        closestDistance = distance;
+                    }
+                }
+                else Debug.Log("Z path failed");
+            }
+            Debug.Log("Closest location: " + closest);
+            agent.SetDestination(closest);
         }
-        for (int i = z - 1; i < x + 2; i++)
+        else if(toDo.GetName() == "Transport") //if the order is for transporting
         {
-            if(NavMesh.CalculatePath(transform.position, new Vector3(x, location.y, i), agent.areaMask, path)){
-                float distance = Vector3.Distance(transform.position, path.corners[0]);
-                for (int y = 1; y < path.corners.Length; y++)
-                {
-                    distance += Vector3.Distance(path.corners[y - 1], path.corners[y]);
-                }
-                if (distance < closestDistance)
-                {
-                    closest = new Vector3(i, location.y, z);
-                }
-            }
+
         }
-        agent.SetDestination(closest);
         orderStarted = false;
         GridManager.AddtoList(CurrOrder);
         CurrOrder.SetBuilder(this);

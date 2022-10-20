@@ -12,13 +12,14 @@ public class GridManager : MonoBehaviour
     public static int activeLayer;
     private static GameObject worldGeography; // world geography will manage the navmesh
     private static GameObject cellHolder; //cell holder will keep track of the cells for the purposes of interacting and visuals
-    private static Queue<Order> priorityQueue;
+    private static Queue<Order> highPriorityQueue;
+    private static Queue<Order> lowPriorityQueue;
     private static List<Order> activeOrders;
     private static Dictionary<string, int> dungeonStats;
     private static Dictionary<string, List<Container>> containers;
-    private static bool updateMesh;
     private static List<NavMeshBuildSource> sources;
 
+    public UIManager UI;
     public float xOffset;
     public float yOffset;
     public float seed;
@@ -28,7 +29,8 @@ public class GridManager : MonoBehaviour
     {
         worldGeography = GameObject.Find("WorldGeography");
         cellHolder = GameObject.Find("CellHolder");
-        priorityQueue = new Queue<Order>();
+        highPriorityQueue = new Queue<Order>();
+        lowPriorityQueue = new Queue<Order>();
         activeOrders = new List<Order>();
         dungeonStats = new Dictionary<string, int>() //Cells will add and subtract to here to keep track of important stats
         {
@@ -45,19 +47,9 @@ public class GridManager : MonoBehaviour
             {"Weapons", new List<Container>()}
         };
         Instantiate(Resources.Load<GameObject>("Special/Ground"), worldGeography.transform).layer = 6;
-        updateMesh = false;
         activeLayer = 3;
         grid = new Cell[100, 4, 100];
         StartCoroutine(DungeonBuilder.BuildGrid(grid, activeLayer, worldGeography,cellHolder, xOffset, yOffset, seed));
-    }
-
-    void LateUpdate()
-    {
-        if (updateMesh)
-        {
-            updateMesh = false;
-            StartCoroutine(UpdateMesh());
-        }
     }
 
     public static void SetSources(List<NavMeshBuildSource> toSet)
@@ -65,14 +57,24 @@ public class GridManager : MonoBehaviour
         sources = toSet;
     }
 
-    public static void AddtoQueue(Order toAdd)
+    public static void AddtoHighQueue(Order toAdd)
     {
-        priorityQueue.Enqueue(toAdd);
+        highPriorityQueue.Enqueue(toAdd);
     }
 
-    public static Queue<Order> GetQueue()
+    public static void AddtoLowQueue(Order toAdd)
     {
-        return priorityQueue;
+        lowPriorityQueue.Enqueue(toAdd);
+    }
+
+    public static Queue<Order> GetHighQueue()
+    {
+        return highPriorityQueue;
+    }
+
+    public static Queue<Order> GetLowQueue()
+    {
+        return lowPriorityQueue;
     }
 
     public static void AddtoList(Order toAdd)
@@ -90,22 +92,37 @@ public class GridManager : MonoBehaviour
         return activeOrders.Contains(toCheck);
     }
 
-    public static bool QueueContains(Order toCheck)
+    public static bool HighQueueContains(Order toCheck)
     {
-        return priorityQueue.Contains(toCheck);
+        return highPriorityQueue.Contains(toCheck);
+    }
+
+    public static bool LowQueueContains(Order toCheck)
+    {
+        return lowPriorityQueue.Contains(toCheck);
     }
 
     public static void CancelOrder(Order toCancel)
     {
-        if (QueueContains(toCancel)) //If the queue contains the order, remove the order from the queue
+        if (HighQueueContains(toCancel)) //If the queue contains the order, remove the order from the queue
         {
             Queue<Order> temp = new Queue<Order>();
-            foreach (Order order in priorityQueue)
+            foreach (Order order in highPriorityQueue)
             {
                 if (order == toCancel) continue;
                 temp.Enqueue(order);
             }
-            priorityQueue = temp;
+            highPriorityQueue = temp;
+        }
+        else if (LowQueueContains(toCancel))
+        {
+            Queue<Order> temp = new Queue<Order>();
+            foreach (Order order in lowPriorityQueue)
+            {
+                if (order == toCancel) continue;
+                temp.Enqueue(order);
+            }
+            lowPriorityQueue = temp;
         }
         else if (ListContains(toCancel)) //If the list contains the order, remove the order from the list and stop the builder
         {
@@ -167,8 +184,9 @@ public class GridManager : MonoBehaviour
         }
         else if (y == activeLayer - 1 && grid[x, y + 1, z].TraitsContains("Transparent")) temp.layer = 7;
         else temp.layer = 8;
+        if (toUpdate.GetResourceType() != "None") Instantiate(Resources.Load<GameObject>("Minerals/" + toUpdate.GetResourceType())).transform.position = toUpdate.transform.position;
         Destroy(toUpdate.gameObject);
-        Debug.Log(worldGeography.GetComponent<NavMeshSurface>().collectObjects);
+        //Debug.Log(worldGeography.GetComponent<NavMeshSurface>().collectObjects);
         if (temp.GetComponent<Cell>().TraitsContains("Traversable"))
         {
             GameObject floor = Instantiate(Resources.Load<GameObject>("Special/Floor"), worldGeography.transform);
@@ -178,6 +196,7 @@ public class GridManager : MonoBehaviour
         worldGeography.GetComponent<NavMeshSurface>().UpdateNavMesh(worldGeography.GetComponent<NavMeshSurface>().navMeshData); // I want to come back here to see if I can find a more cost-effective way of doing this. I would love to see if there was a way to just add a single 1x1 cube to the existing mesh
     }
 
+    /*
     private static IEnumerator UpdateMesh()
     {
         var operation = NavMeshBuilder.UpdateNavMeshDataAsync(
@@ -187,7 +206,6 @@ public class GridManager : MonoBehaviour
         new Bounds(Vector3.zero, new Vector3(1000, 1000, 1000)) // set these accordingly
     );
         do { yield return null; } while (!operation.isDone);
-        /*
         AsyncOperation operation = worldGeography.GetComponent<NavMeshSurface>().UpdateNavMesh(worldGeography.GetComponent<NavMeshSurface>().navMeshData);
         Debug.Log(operation.isDone);
         while (!operation.isDone)
@@ -196,13 +214,46 @@ public class GridManager : MonoBehaviour
             Debug.Log("Progress: " + operation.progress);
             yield return null;
         }
-        */
     }
+    */
 
     private static void UpdateResources(Container updateFrom)
     {
         dungeonStats[updateFrom.type] += updateFrom.maxAmount;
         containers[updateFrom.type].Add(updateFrom);
+    }
+
+    public static Container GetClosestValidContainer(Resource toTransit, string type)
+    {
+        NavMeshPath path = new NavMeshPath();
+        float closestDistance = float.MaxValue;
+        Container closestContainer = null;
+        foreach (Container container in containers[type])
+        {
+            if (!container.IsFull()) // prevent pathfinding to full containers
+            {
+                if (NavMesh.CalculatePath(toTransit.transform.position, container.transform.position, NavMesh.AllAreas, path))
+                {
+                    float distance = Vector3.Distance(toTransit.transform.position, path.corners[0]);
+                    for (int y = 1; y < path.corners.Length; y++)
+                    {
+                        distance += Vector3.Distance(path.corners[y - 1], path.corners[y]); //maybe I'll do some additional math here in the future to create a preference for containers with more open room
+                    }
+                    if (distance < closestDistance)
+                    {
+                        closestContainer = container;
+                        closestDistance = distance;
+                    }
+                }
+                else
+                {
+                    Debug.LogError("Invalid Path for transit");
+                    return null;
+                }
+                closestContainer = container;
+            }
+        }
+        return closestContainer;
     }
 
     public static void UpdateItemGrid(Cell toUpdate, string toFetch, int rotation) //Changes the item in the location to the one stored in toFetch

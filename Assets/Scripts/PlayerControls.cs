@@ -34,8 +34,8 @@ public class PlayerControls : MonoBehaviour
                     if (hit.collider.GetComponent<Cell>().GetName() != toBuild[0])
                     {
                         Order order = new Order("buildCell", hit.collider.GetComponent<Cell>(), toBuild[0]);
-                        if (GridManager.QueueContains(order) || GridManager.ListContains(order)) GridManager.CancelOrder(order);
-                        else GridManager.AddtoQueue(order);
+                        if (GridManager.HighQueueContains(order) || GridManager.ListContains(order)) GridManager.CancelOrder(order);
+                        else GridManager.AddtoHighQueue(order);
                     }
                     Debug.Log(hit.collider.GetComponent<Cell>().GetName());
                 }
@@ -48,8 +48,8 @@ public class PlayerControls : MonoBehaviour
                     if (hit.collider.GetComponent<Cell>().TraitsContains(Resources.Load<Container>("Items/" + toBuild[0]).type))
                     {
                         Order order = new Order("buildItem", hit.collider.GetComponent<Cell>(), toBuild[0], 0);
-                        if (GridManager.QueueContains(order) || GridManager.ListContains(order)) GridManager.CancelOrder(order);
-                        else GridManager.AddtoQueue(order);
+                        if (GridManager.HighQueueContains(order) || GridManager.ListContains(order)) GridManager.CancelOrder(order);
+                        else GridManager.AddtoHighQueue(order);
                     }
                 }
             }

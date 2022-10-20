@@ -2,11 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Order
+public class Order //starting to think I should've made this an abstract
 {
 
     private string name;
     private Cell location;
+    private Resource toGrab;
+    private Container toBring;
     private string toDo;
     private Builder builder;
     private int rotation;
@@ -16,6 +18,13 @@ public class Order
         this.name = name;
         this.location = location;
         this.toDo = toDo;
+    }
+
+    public Order (string name, Container toBring, Resource toGrab)
+    {
+        this.name = name;
+        this.toGrab = toGrab;
+        this.toBring = toBring;
     }
 
     public Order(string name, Cell location, string toDo, int rotation)

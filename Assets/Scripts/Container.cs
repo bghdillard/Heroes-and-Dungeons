@@ -19,6 +19,11 @@ public class Container : MonoBehaviour
         return currAmount + toCheck > maxAmount;
     }
 
+    public bool IsFull() //Check if the container is currently full;
+    {
+        return currAmount == maxAmount;
+    }
+
     public int GetDifference(int toCheck) //Get by how much the given amount of resources + the current amount of held resources is over the limit by
     {
         return currAmount + toCheck - maxAmount;

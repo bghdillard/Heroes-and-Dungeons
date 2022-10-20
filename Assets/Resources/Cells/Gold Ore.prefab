@@ -114,6 +114,7 @@ MonoBehaviour:
   traits:
   - Opaque
   cellName: Stone
+  resourceType: Gold
 --- !u!208 &7725168828639838835
 NavMeshObstacle:
   m_ObjectHideFlags: 0

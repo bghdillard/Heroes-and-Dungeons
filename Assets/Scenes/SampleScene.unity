@@ -374,7 +374,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 0}
   m_Direction: 0
   m_MinValue: 0
-  m_MaxValue: 100
+  m_MaxValue: 1
   m_WholeNumbers: 1
   m_Value: 0
   m_OnValueChanged:
@@ -1138,6 +1138,7 @@ GameObject:
   m_Component:
   - component: {fileID: 333132758}
   - component: {fileID: 333132757}
+  - component: {fileID: 333132759}
   m_Layer: 0
   m_Name: GameController
   m_TagString: Untagged
@@ -1157,6 +1158,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2bb5783bcf485a848879bd2e25b5de26, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  UI: {fileID: 333132759}
   xOffset: 150
   yOffset: 150
   seed: 0.105
@@ -1175,6 +1177,23 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &333132759
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 333132756}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d6838fa27316a9489381c23782e238e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  goldText: {fileID: 0}
+  oreText: {fileID: 0}
+  prestigeText: {fileID: 0}
+  goldSlider: {fileID: 1482333139}
+  oreSlider: {fileID: 108229014}
 --- !u!1 &373439667
 GameObject:
   m_ObjectHideFlags: 0
@@ -3770,7 +3789,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 0}
   m_Direction: 0
   m_MinValue: 0
-  m_MaxValue: 100
+  m_MaxValue: 1
   m_WholeNumbers: 1
   m_Value: 0
   m_OnValueChanged:
