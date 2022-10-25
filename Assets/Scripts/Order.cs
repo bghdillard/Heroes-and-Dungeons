@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Order //starting to think I should've made this an abstract
+public class Order //starting to think I should've made this an abstract class
 {
 
     private string name;
@@ -63,6 +63,16 @@ public class Order //starting to think I should've made this an abstract
     public void SetBuilder(Builder toSet)
     {
         builder = toSet;
+    }
+
+    public Resource GetToGrab()
+    {
+        return toGrab;
+    }
+
+    public Container GetToBring()
+    {
+        return toBring;
     }
 
     public override bool Equals(object obj)

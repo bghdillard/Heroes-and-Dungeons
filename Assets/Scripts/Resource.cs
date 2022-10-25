@@ -16,10 +16,11 @@ public class Resource : MonoBehaviour
 
     private void Awake()
     {
-        amount = Random.Range(minAmount, maxAmount + 1);
-        target = GridManager.GetClosestValidContainer(this, resourceType);
-        if (target != null) GridManager.AddtoLowQueue(new Order("Transport", target, this));
+        amount = 90;//Random.Range(minAmount, maxAmount + 1);
+        /*target = GridManager.GetClosestValidContainer(this, resourceType); Because the object spawns above the navmesh, doing this here causes issues. I think...
+        if (target != null) GridManager.AddtoLowQueue(new Order("transport", target, this));
         else Debug.Log("No valid container of type: " + resourceType);
+        */
     }
 
     // Update is called once per frame
@@ -28,7 +29,11 @@ public class Resource : MonoBehaviour
         if(target == null) // might want to move this somewhere else, but that's a future problem
         {
             target = GridManager.GetClosestValidContainer(this, resourceType);
-            if (target != null) GridManager.AddtoLowQueue(new Order("Transport", target, this));
+            if (target != null)
+            {
+                GridManager.AddtoLowQueue(new Order("transport", target, this));
+                target.AddTentative(amount);
+            }
             else Debug.Log("Still no valid container of type: " + resourceType);
         }
     }
@@ -41,5 +46,10 @@ public class Resource : MonoBehaviour
     public void SubtractAmount(int toSubtract)
     {
         amount -= toSubtract;
+    }
+
+    public void RemoveTarget()
+    {
+        target = null;
     }
 }

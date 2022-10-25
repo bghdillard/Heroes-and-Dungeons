@@ -17,7 +17,7 @@ public class GridManager : MonoBehaviour
     private static List<Order> activeOrders;
     private static Dictionary<string, int> dungeonStats;
     private static Dictionary<string, List<Container>> containers;
-    private static List<NavMeshBuildSource> sources;
+    //private static List<NavMeshBuildSource> sources;
 
     public UIManager UI;
     public float xOffset;
@@ -52,10 +52,11 @@ public class GridManager : MonoBehaviour
         StartCoroutine(DungeonBuilder.BuildGrid(grid, activeLayer, worldGeography,cellHolder, xOffset, yOffset, seed));
     }
 
-    public static void SetSources(List<NavMeshBuildSource> toSet)
+    /*public static void SetSources(List<NavMeshBuildSource> toSet)
     {
         sources = toSet;
     }
+    */
 
     public static void AddtoHighQueue(Order toAdd)
     {
@@ -216,7 +217,7 @@ public class GridManager : MonoBehaviour
         }
     }
     */
-
+    
     private static void UpdateResources(Container updateFrom)
     {
         dungeonStats[updateFrom.type] += updateFrom.maxAmount;
@@ -230,15 +231,19 @@ public class GridManager : MonoBehaviour
         Container closestContainer = null;
         foreach (Container container in containers[type])
         {
+            //Debug.Log("New Container");
             if (!container.IsFull()) // prevent pathfinding to full containers
             {
+                Debug.Log("Container Position: " + container.transform.position);
+                Debug.Log("Resource Position: " + toTransit.transform.position);
                 if (NavMesh.CalculatePath(toTransit.transform.position, container.transform.position, NavMesh.AllAreas, path))
                 {
                     float distance = Vector3.Distance(toTransit.transform.position, path.corners[0]);
                     for (int y = 1; y < path.corners.Length; y++)
                     {
-                        distance += Vector3.Distance(path.corners[y - 1], path.corners[y]); //maybe I'll do some additional math here in the future to create a preference for containers with more open room
+                        distance += Vector3.Distance(path.corners[y - 1], path.corners[y]); //maybe I'll do some additional math here in the future to create a preference for containers with more open room or that are more secure
                     }
+                    //Debug.Log("Current closest distance is: " + closestDistance);
                     if (distance < closestDistance)
                     {
                         closestContainer = container;
@@ -250,7 +255,6 @@ public class GridManager : MonoBehaviour
                     Debug.LogError("Invalid Path for transit");
                     return null;
                 }
-                closestContainer = container;
             }
         }
         return closestContainer;

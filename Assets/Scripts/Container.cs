@@ -6,8 +6,8 @@ public class Container : MonoBehaviour
 {
     public string type;
     public int maxAmount;
-    [HideInInspector]
     public int currAmount = 0;
+    public int tentativeAmount = 0;
 
     public void AddResources(int toAdd) //Add the given amount of resources to the container
     {
@@ -16,16 +16,27 @@ public class Container : MonoBehaviour
 
     public bool CheckAmount(int toCheck) //Check if the container can hold the given amount of resources
     {
-        return currAmount + toCheck > maxAmount;
+        return currAmount + toCheck <= maxAmount;
     }
 
     public bool IsFull() //Check if the container is currently full;
     {
-        return currAmount == maxAmount;
+        return tentativeAmount == maxAmount;
     }
 
-    public int GetDifference(int toCheck) //Get by how much the given amount of resources + the current amount of held resources is over the limit by
+    public int GetRemaining() //Get how many more resources the container can store in it
     {
-        return currAmount + toCheck - maxAmount;
+        return maxAmount - currAmount;
+    }
+
+    public void Fill()
+    {
+        currAmount = maxAmount;
+    }
+
+    public void AddTentative(int toAdd) //Add the amount of resources being brought by queued resources, in an effort to prevent the container being queued when it is set to be filled
+    {
+        tentativeAmount += toAdd;
+        if (tentativeAmount > maxAmount) tentativeAmount = maxAmount;
     }
 }

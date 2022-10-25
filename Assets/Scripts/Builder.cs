@@ -5,10 +5,11 @@ using UnityEngine.AI;
 
 public class Builder : MonoBehaviour
 {
-
+    [SerializeField]
     private Order CurrOrder;
     private NavMeshAgent agent;
     private bool orderStarted;
+    private GameObject transporting;
 
     private void Awake()
     {
@@ -30,17 +31,55 @@ public class Builder : MonoBehaviour
             if (!orderStarted)
             {
                 Debug.Log("Builder Moving");
-                if (Vector3.Distance(transform.position, CurrOrder.GetLocation().GetLocation()) <= 1.5) //If this builder has an order, check if in range of the cell;
+                if (CurrOrder.GetName() == "buildCell" || CurrOrder.GetName() == "buildItem")
                 {
-                    Debug.Log("Reached Destination");
-                    agent.SetDestination(transform.position); //If so, stop moving and begin work;
-                    orderStarted = true;
-                    if (CurrOrder.GetName() == "buildCell") StartCoroutine(BuildCell());
-                    else if (CurrOrder.GetName() == "buildItem") StartCoroutine(BuildItem());
+                    if (agent.remainingDistance <= 1.5) //If this builder has an order, check if in range of the cell;
+                    {
+                        Debug.Log("Reached Destination");
+                        agent.SetDestination(transform.position); //If so, stop moving and begin work;
+                        orderStarted = true;
+                        if (CurrOrder.GetName() == "buildCell") StartCoroutine(BuildCell());
+                        else if (CurrOrder.GetName() == "buildItem") StartCoroutine(BuildItem());
+                    }
+                    else //If not in range of the cell, recalculate the path (I don't know at this point if this'll be necessary, or, on top of that, if it'll get expensive, so keep that in mind me)
+                    {
+                        agent.SetDestination(agent.destination);
+                    }
                 }
-                else //If not in range of the cell, recalculate the path (I don't know at this point if this'll be necessary, or, on top of that, if it'll get expensive, so keep that in mind me)
+                else if (CurrOrder.GetName() == "transport")
                 {
-                    agent.SetDestination(agent.destination);
+                    if (agent.remainingDistance <= 0.8)
+                    {
+                        orderStarted = true;
+                        CurrOrder.GetToGrab().transform.SetParent(transform); //In the future, this'll need to set up to look at the distance between a hand and the object, but that's a future problem;
+                        agent.SetDestination(CurrOrder.GetToBring().transform.position);
+                        Debug.Log("Resource Grabbed");
+                    }
+                }
+            }
+            else if (CurrOrder.GetName() == "transport") 
+            {
+                if(agent.remainingDistance <= 0.8) //if we are close enough to the container, put the resource into the container
+                {
+                    Resource resource = CurrOrder.GetToGrab();
+                    Container container = CurrOrder.GetToBring();
+                    if (container.CheckAmount(resource.GetAmount()))
+                    {
+                        Debug.Log("Container not full from this resource");
+                        container.AddResources(resource.GetAmount());
+                        Destroy(resource.gameObject);
+                    }
+                    else
+                    {
+                        Debug.Log("Container full from this resource");
+                        resource.SubtractAmount(container.GetRemaining());
+                        container.Fill();
+                        resource.transform.parent = null;
+                        resource.RemoveTarget();
+                    }
+                    //Debug.Log("this much is working");
+                    CurrOrder = null;
+                    Debug.Log("Item transported");
                 }
             }
         }
@@ -73,7 +112,7 @@ public class Builder : MonoBehaviour
             {
                 if (NavMesh.CalculatePath(transform.position, new Vector3(i, location.y, z), agent.areaMask, path))
                 {
-                    Debug.Log("X path calculated");
+                    //Debug.Log("X path calculated");
                     float distance = Vector3.Distance(transform.position, path.corners[0]);
                     for (int y = 1; y < path.corners.Length; y++)
                     {
@@ -85,13 +124,13 @@ public class Builder : MonoBehaviour
                         closestDistance = distance;
                     }
                 }
-                else Debug.Log("X path failed");
+                //else Debug.Log("X path failed");
             }
-            for (int i = z - 1; i < z + 2; i++) //mention this to mama for fun
+            for (int i = z - 1; i < z + 2; i++)
             {
                 if (NavMesh.CalculatePath(transform.position, new Vector3(x, location.y, i), agent.areaMask, path))
                 {
-                    Debug.Log("Z path calculated");
+                    //Debug.Log("Z path calculated");
                     float distance = Vector3.Distance(transform.position, path.corners[0]);
                     for (int y = 1; y < path.corners.Length; y++)
                     {
@@ -103,21 +142,21 @@ public class Builder : MonoBehaviour
                         closestDistance = distance;
                     }
                 }
-                else Debug.Log("Z path failed");
+                //else Debug.Log("Z path failed");
             }
             Debug.Log("Closest location: " + closest);
             agent.SetDestination(closest);
         }
-        else if(toDo.GetName() == "Transport") //if the order is for transporting
+        else if(toDo.GetName() == "transport") //if the order is for transporting
         {
-
+            agent.SetDestination(toDo.GetToGrab().transform.position);
         }
         orderStarted = false;
         GridManager.AddtoList(CurrOrder);
         CurrOrder.SetBuilder(this);
     }
 
-    IEnumerator BuildCell()
+    IEnumerator BuildCell() //Remember to come back here and connect it to canceling order in some way, same with build item;
     {
         Debug.Log("Build Begin");
         WaitForSeconds wait = new WaitForSeconds(1);
