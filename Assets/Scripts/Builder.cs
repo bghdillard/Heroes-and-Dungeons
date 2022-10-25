@@ -79,6 +79,7 @@ public class Builder : MonoBehaviour
                     }
                     //Debug.Log("this much is working");
                     CurrOrder = null;
+                    agent.SetDestination(transform.position);
                     Debug.Log("Item transported");
                 }
             }

@@ -6,23 +6,23 @@ using TMPro;
 
 public class UIManager : MonoBehaviour
 {
-    public TextMeshPro goldText;
-    public TextMeshPro oreText;
-    public TextMeshPro prestigeText;
+    public TextMeshProUGUI goldText;
+    public TextMeshProUGUI oreText;
+    public TextMeshProUGUI prestigeText;
 
     public Slider goldSlider;
     public Slider oreSlider;
 
-    public void updateGoldText(int toIncrease, string toUpdate)
+    public void UpdateGoldText(int toIncrease)
     {
-        goldSlider.minValue += toIncrease;
-        goldText.SetText(toUpdate);
+        goldSlider.value += toIncrease;
+        goldText.SetText(goldSlider.value.ToString());
     }
 
-    public void updateOreText(int toIncrease, string toUpdate)
+    public void UpdateOreText(int toIncrease)
     {
-        oreSlider.minValue += toIncrease;
-        oreText.SetText(toUpdate);
+        oreSlider.value += toIncrease;
+        oreText.SetText(oreSlider.value.ToString());
     }
 
     public void updatePrestigeText(string toUpdate)

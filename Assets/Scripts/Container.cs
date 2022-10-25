@@ -8,10 +8,20 @@ public class Container : MonoBehaviour
     public int maxAmount;
     public int currAmount = 0;
     public int tentativeAmount = 0;
+    public UIManager UI;
+
+    private void Awake()
+    {
+        UI = GameObject.Find("GameController").GetComponent<UIManager>();
+        if (type == "Gold") UI.UpdateGoldSlider(maxAmount);
+        else if (type == "Ore") UI.UpdateOreSlider(maxAmount);
+    }
 
     public void AddResources(int toAdd) //Add the given amount of resources to the container
     {
         currAmount += toAdd;
+        if (type == "Gold") UI.UpdateGoldText(toAdd);
+        else if (type == "Ore") UI.UpdateOreText(toAdd);
     }
 
     public bool CheckAmount(int toCheck) //Check if the container can hold the given amount of resources
@@ -31,6 +41,8 @@ public class Container : MonoBehaviour
 
     public void Fill()
     {
+        if (type == "Gold") UI.UpdateGoldText(maxAmount - currAmount);
+        else if (type == "Ore") UI.UpdateOreText(maxAmount - currAmount);
         currAmount = maxAmount;
     }
 

@@ -19,7 +19,6 @@ public class GridManager : MonoBehaviour
     private static Dictionary<string, List<Container>> containers;
     //private static List<NavMeshBuildSource> sources;
 
-    public UIManager UI;
     public float xOffset;
     public float yOffset;
     public float seed;
