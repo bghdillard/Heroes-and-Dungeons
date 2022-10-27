@@ -41,25 +41,6 @@ public class ItemOrder : IOrder
         return location;
     }
 
-    public bool IsAccessible()
-    {
-        int x = (int)location.transform.position.x;
-        int y = (int)location.transform.position.y;
-        int z = (int)location.transform.position.z;
-        for (int i = x - 1; i < x + 2; i++)
-        {
-            if (i < 0) return true;
-            if (i > 99) continue;
-            if (GridManager.GetGrid()[i, y, z].TraitsContains("Traversable")) return true;
-        }
-        for (int i = z - 1; i < z + 2; z++)
-        {
-            if (i < 0 || i > 99) continue;
-            if (GridManager.GetGrid()[x, y, i].TraitsContains("Traversable")) return true;
-        }
-        return false;
-    }
-
     public override bool Equals(object obj)
     {
         //Check for null and compare types.

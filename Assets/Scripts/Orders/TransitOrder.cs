@@ -25,11 +25,6 @@ public class TransitOrder : IOrder
         return orderType;
     }
 
-    public bool IsAccessible() //for now, I believe that transit orders should always be accessible;
-    {
-        return true;
-    }
-
     public GameObject GetToTransit()
     {
         return initialTarget;
@@ -43,15 +38,5 @@ public class TransitOrder : IOrder
     public GameObject GetToStore()
     {
         return finalTarget;
-    }
-
-    public override bool Equals(object obj)
-    {
-        return base.Equals(obj);
-    }
-
-    public override int GetHashCode()
-    {
-        return base.GetHashCode();
     }
 }

@@ -20,10 +20,6 @@ public class Resource : MonoBehaviour
     {
         amount = 90;//Random.Range(minAmount, maxAmount + 1);
         builderController = GameObject.Find("GameController").GetComponent<BuilderController>();
-        /*target = GridManager.GetClosestValidContainer(this, resourceType); Because the object spawns above the navmesh, doing this here causes issues. I think...
-        if (target != null) GridManager.AddtoLowQueue(new Order("transport", target, this));
-        else Debug.Log("No valid container of type: " + resourceType);
-        */
     }
 
     // Update is called once per frame

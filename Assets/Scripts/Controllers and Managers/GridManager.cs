@@ -55,100 +55,11 @@ public class GridManager : MonoBehaviour
         StartCoroutine(DungeonBuilder.BuildGrid(grid, activeLayer, worldGeography,cellHolder, xOffset, yOffset, seed));
     }
 
-    /*public static void SetSources(List<NavMeshBuildSource> toSet)
-    {
-        sources = toSet;
-    }
-    */
-
-
     public static Cell[ , , ] GetGrid()
     {
         return grid;
     }
-    /*
-    public static void AddtoHighQueue(Order toAdd)
-    {
-        highPriorityQueue.Enqueue(toAdd);
-    }
 
-    public static void AddtoLowQueue(Order toAdd)
-    {
-        lowPriorityQueue.Enqueue(toAdd);
-    }
-
-    public static Queue<Order> GetHighQueue()
-    {
-        return highPriorityQueue;
-    }
-
-    public static Queue<Order> GetLowQueue()
-    {
-        return lowPriorityQueue;
-    }
-
-    public static void AddtoList(Order toAdd)
-    {
-        activeOrders.Add(toAdd);
-    }
-
-    public static void RemoveFromList(Order toRemove)
-    {
-        activeOrders.Remove(toRemove);
-    }
-
-    public static bool ListContains(Order toCheck)
-    {
-        return activeOrders.Contains(toCheck);
-    }
-
-    public static bool HighQueueContains(Order toCheck)
-    {
-        return highPriorityQueue.Contains(toCheck);
-    }
-
-    public static bool LowQueueContains(Order toCheck)
-    {
-        return lowPriorityQueue.Contains(toCheck);
-    }
-
-    public static void CancelOrder(Order toCancel)
-    {
-        if (HighQueueContains(toCancel)) //If the queue contains the order, remove the order from the queue
-        {
-            Queue<Order> temp = new Queue<Order>();
-            foreach (Order order in highPriorityQueue)
-            {
-                if (order == toCancel) continue;
-                temp.Enqueue(order);
-            }
-            highPriorityQueue = temp;
-        }
-        else if (LowQueueContains(toCancel))
-        {
-            Queue<Order> temp = new Queue<Order>();
-            foreach (Order order in lowPriorityQueue)
-            {
-                if (order == toCancel) continue;
-                temp.Enqueue(order);
-            }
-            lowPriorityQueue = temp;
-        }
-        else if (ListContains(toCancel)) //If the list contains the order, remove the order from the list and stop the builder
-        {
-            foreach (Order order in activeOrders)
-            {
-                if (order.Equals(toCancel))
-                {
-                    order.Cancel();
-                    break;
-                }
-            }
-            activeOrders.Remove(toCancel);
-        }
-        else Debug.Log("Canceled Order not found"); //If neither contain the order, we have a problem
-    }
-    */
     public static bool CheckAdjacent(Cell toCheck) //Checks to see if the cell attempting to be accessed can be accessed
     {
         Debug.Log("GridManager.CheckAdjacent is not yet dead");
@@ -206,27 +117,6 @@ public class GridManager : MonoBehaviour
         //updateMesh = true;
         worldGeography.GetComponent<NavMeshSurface>().UpdateNavMesh(worldGeography.GetComponent<NavMeshSurface>().navMeshData); // I want to come back here to see if I can find a more cost-effective way of doing this. I would love to see if there was a way to just add a single 1x1 cube to the existing mesh
     }
-
-    /*
-    private static IEnumerator UpdateMesh()
-    {
-        var operation = NavMeshBuilder.UpdateNavMeshDataAsync(
-        worldGeography.GetComponent<NavMeshSurface>().navMeshData,
-        worldGeography.GetComponent<NavMeshSurface>().GetBuildSettings(),
-        sources,
-        new Bounds(Vector3.zero, new Vector3(1000, 1000, 1000)) // set these accordingly
-    );
-        do { yield return null; } while (!operation.isDone);
-        AsyncOperation operation = worldGeography.GetComponent<NavMeshSurface>().UpdateNavMesh(worldGeography.GetComponent<NavMeshSurface>().navMeshData);
-        Debug.Log(operation.isDone);
-        while (!operation.isDone)
-        {
-            Debug.Log("still working");
-            Debug.Log("Progress: " + operation.progress);
-            yield return null;
-        }
-    }
-    */
     
     private static void UpdateResources(Container updateFrom)
     {
