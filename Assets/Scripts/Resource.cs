@@ -14,9 +14,12 @@ public class Resource : MonoBehaviour
     private int amount;
     private Container target;
 
+    private BuilderController builderController;
+
     private void Awake()
     {
         amount = 90;//Random.Range(minAmount, maxAmount + 1);
+        builderController = GameObject.Find("GameController").GetComponent<BuilderController>();
         /*target = GridManager.GetClosestValidContainer(this, resourceType); Because the object spawns above the navmesh, doing this here causes issues. I think...
         if (target != null) GridManager.AddtoLowQueue(new Order("transport", target, this));
         else Debug.Log("No valid container of type: " + resourceType);
@@ -31,7 +34,7 @@ public class Resource : MonoBehaviour
             target = GridManager.GetClosestValidContainer(this, resourceType);
             if (target != null)
             {
-                GridManager.AddtoLowQueue(new Order("transport", target, this));
+                builderController.AddToLowQueue(new TransitOrder(gameObject, target.gameObject));
                 target.AddTentative(amount);
             }
             else Debug.Log("Still no valid container of type: " + resourceType);

@@ -12,9 +12,11 @@ public class GridManager : MonoBehaviour
     public static int activeLayer;
     private static GameObject worldGeography; // world geography will manage the navmesh
     private static GameObject cellHolder; //cell holder will keep track of the cells for the purposes of interacting and visuals
+    /*
     private static Queue<Order> highPriorityQueue;
     private static Queue<Order> lowPriorityQueue;
     private static List<Order> activeOrders;
+    */
     private static Dictionary<string, int> dungeonStats;
     private static Dictionary<string, List<Container>> containers;
     //private static List<NavMeshBuildSource> sources;
@@ -28,9 +30,11 @@ public class GridManager : MonoBehaviour
     {
         worldGeography = GameObject.Find("WorldGeography");
         cellHolder = GameObject.Find("CellHolder");
+        /*
         highPriorityQueue = new Queue<Order>();
         lowPriorityQueue = new Queue<Order>();
         activeOrders = new List<Order>();
+        */
         dungeonStats = new Dictionary<string, int>() //Cells will add and subtract to here to keep track of important stats
         {
             {"Prestige", 0}, // Prestige will affect progression, higher prestige comes from higher quality cell types and minions, and, in turn, will attract higher quality heroes
@@ -57,6 +61,12 @@ public class GridManager : MonoBehaviour
     }
     */
 
+
+    public static Cell[ , , ] GetGrid()
+    {
+        return grid;
+    }
+    /*
     public static void AddtoHighQueue(Order toAdd)
     {
         highPriorityQueue.Enqueue(toAdd);
@@ -138,9 +148,10 @@ public class GridManager : MonoBehaviour
         }
         else Debug.Log("Canceled Order not found"); //If neither contain the order, we have a problem
     }
-
+    */
     public static bool CheckAdjacent(Cell toCheck) //Checks to see if the cell attempting to be accessed can be accessed
     {
+        Debug.Log("GridManager.CheckAdjacent is not yet dead");
         Vector3 location = toCheck.GetLocation();
         int x = (int)location.x;
         int y = (int)location.y;

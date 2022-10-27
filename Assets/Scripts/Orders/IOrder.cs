@@ -2,9 +2,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Order //starting to think I should've made this an abstract class
+public interface IOrder //starting to think I should've made this an abstract class
 {
 
+    Vector3 GetLocation();
+    string GetOrderType();
+    bool IsAccessible();
+}
+
+    /*
     private string name;
     private Cell location;
     private Resource toGrab;
@@ -74,6 +80,7 @@ public class Order //starting to think I should've made this an abstract class
     {
         return toBring;
     }
+    
 
     public override bool Equals(object obj)
     {
@@ -91,4 +98,4 @@ public class Order //starting to think I should've made this an abstract class
         Debug.Log("Order.GetHashCode called"); //put a debug here just in case... if this is an issue, hopefully this'll key me in pretty quickly
         return location.GetHashCode() + name.GetHashCode(); //this may be problematic, but I don't really know enough about hashcodes to immediately know
     }
-}
+    */

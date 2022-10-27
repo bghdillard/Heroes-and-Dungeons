@@ -6,14 +6,16 @@ using UnityEngine.AI;
 public class Builder : MonoBehaviour
 {
     [SerializeField]
-    private Order CurrOrder;
+    private IOrder CurrOrder;
     private NavMeshAgent agent;
     private bool orderStarted;
-    private GameObject transporting;
+    private Coroutine activeCoroutine;
+    private BuilderController builderController;
 
     private void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
+        GameObject.Find("GameController").GetComponent<BuilderController>().AddBuilder(this);
     }
 
     // Start is called before the first frame update
@@ -26,8 +28,55 @@ public class Builder : MonoBehaviour
     void Update()
     {
 
-        if (CurrOrder != null) //begin by seeing if this builder has a current build order;
+        if (CurrOrder != null && !agent.pathPending) //begin by seeing if this builder has a current build order;
         {
+            if (!orderStarted) //Look to see if we're still moving to the location
+            {
+                if (agent.remainingDistance <= 0.8) //if we're in range, start the order;
+                {
+                    agent.SetDestination(transform.position);
+                    orderStarted = true;
+                    if (CurrOrder.GetOrderType() == "cellBuild") activeCoroutine = StartCoroutine(BuildCell());
+                    else if (CurrOrder.GetOrderType() == "itemBuild") activeCoroutine = StartCoroutine(BuildItem());
+                    else if (CurrOrder.GetOrderType() == "transit")
+                    {
+                        TransitOrder temp = (TransitOrder)CurrOrder;
+                        temp.GetToTransit().transform.SetParent(transform);
+                        agent.SetDestination(temp.GetFinalLocation());
+                    }
+                }
+                else agent.SetDestination(agent.destination); //still don't know if this is needed, but I'll keep it for now, it still might maybe get expensive to do, so keep it in mind as one thing to remove;
+            }
+            else if (CurrOrder.GetOrderType() == "transit")
+            {
+                if (agent.remainingDistance <= 0.8) //if we are close enough to the container, put the resource into the container
+                {
+                    TransitOrder temp = (TransitOrder)CurrOrder;
+                    Resource resource = temp.GetToTransit().GetComponent<Resource>();
+                    Container container = temp.GetToStore().GetComponent<Container>();
+                    if (container.CheckAmount(resource.GetAmount()))
+                    {
+                        Debug.Log("Container not full from this resource");
+                        container.AddResources(resource.GetAmount());
+                        Destroy(resource.gameObject);
+                    }
+                    else
+                    {
+                        Debug.Log("Container full from this resource");
+                        resource.SubtractAmount(container.GetRemaining());
+                        container.Fill();
+                        resource.transform.parent = null;
+                        resource.RemoveTarget();
+                    }
+                    //Debug.Log("this much is working");
+                    CurrOrder = null;
+                    agent.SetDestination(transform.position);
+                    Debug.Log("Item transported");
+                }
+                else agent.SetDestination(agent.destination); //and again here, just remember to look here if things are getting expensive;
+            }
+        }           
+        /*
             if (!orderStarted)
             {
                 Debug.Log("Builder Moving");
@@ -96,8 +145,22 @@ public class Builder : MonoBehaviour
                 if (GridManager.GetLowQueue().TryDequeue(out toDo)) SetOrder(toDo); //In theory, all these orders should be accessable;
             }
         }
+        */
     }
 
+    public void SetOrder(IOrder toDo, Vector3 location)
+    {
+        agent.SetDestination(location);
+        CurrOrder = toDo;
+        orderStarted = false;
+    }
+
+    public bool IsWorking()
+    {
+        return CurrOrder != null;
+    }
+
+    /*
     private void SetOrder(Order toDo) //sets the destination of the nav mesh agent to reach the current order, as well as sets the order to be active;
     {
         CurrOrder = toDo;
@@ -156,6 +219,7 @@ public class Builder : MonoBehaviour
         GridManager.AddtoList(CurrOrder);
         CurrOrder.SetBuilder(this);
     }
+    */
 
     IEnumerator BuildCell() //Remember to come back here and connect it to canceling order in some way, same with build item;
     {
@@ -168,12 +232,15 @@ public class Builder : MonoBehaviour
             yield return wait;
         }
         Debug.Log("Mining progress End");
-        GridManager.UpdateGrid(CurrOrder.GetLocation(), CurrOrder.GetBuild());//now that we're done, remove the order and change the cell
+        CellOrder temp = (CellOrder)CurrOrder;
+        GridManager.UpdateGrid(temp.GetCell(), temp.GetToBuild());//now that we're done, remove the order and change the cell
+        builderController.RemoveOrder(CurrOrder);
         CurrOrder = null;
         Debug.Log("Build End");
     }
     IEnumerator BuildItem()
     {
+        ItemOrder toDo = (ItemOrder)CurrOrder;
         Debug.Log("Build Item Begin");
         WaitForSeconds wait = new WaitForSeconds(1);
         for (int i = 0; i < 4; i++)
@@ -183,7 +250,9 @@ public class Builder : MonoBehaviour
             yield return wait;
         }
         Debug.Log("Building progress End");
-        GridManager.UpdateItemGrid(CurrOrder.GetLocation(), CurrOrder.GetBuild(), CurrOrder.GetRotation());//now that we're done, remove the order and add the item
+        ItemOrder temp = (ItemOrder)CurrOrder;
+        GridManager.UpdateItemGrid(temp.GetCell(), temp.GetToBuild(), temp.GetRotation());//now that we're done, remove the order and add the item
+        builderController.RemoveOrder(CurrOrder);
         CurrOrder = null;
         Debug.Log("Build Item End");
     }
@@ -191,7 +260,13 @@ public class Builder : MonoBehaviour
     public void CancelOrder() //Cancel the active order
     {
         agent.SetDestination(transform.position);
+        if (orderStarted && CurrOrder.GetOrderType() == "cellBuild" || CurrOrder.GetOrderType() == "itemBuild") StopCoroutine(activeCoroutine);
         CurrOrder = null;
+    }
+
+    public void AddController(BuilderController toAdd)
+    {
+        builderController = toAdd;
     }
 
 }

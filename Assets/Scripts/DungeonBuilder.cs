@@ -62,10 +62,12 @@ public static class DungeonBuilder
         GameObject camera = GameObject.Find("Main Camera");
         camera.transform.position = new Vector3(-53, activeLayer * 4, 53);
         camera.transform.LookAt(new Vector3(-49, activeLayer * 2, 49));
-        worldGeography.transform.GetComponent<NavMeshSurface>().BuildNavMesh(); 
+        worldGeography.transform.GetComponent<NavMeshSurface>().BuildNavMesh();
+        BuilderController builderController = GameObject.Find("GameController").GetComponent<BuilderController>();
         for (int i = 0; i < 4; i++)
         {
             temp = Object.Instantiate(Resources.Load<GameObject>("Undead/Builder"));
+            builderController.AddBuilder(temp.GetComponent<Builder>());
             if (i % 2 == 0) temp.GetComponent<NavMeshAgent>().Warp(new Vector3(-49 + i * 2 - 2, activeLayer, +49));
             else temp.GetComponent<NavMeshAgent>().Warp(new Vector3(-49, activeLayer, 49 + (i - 1) * 2 - 2));
         }
