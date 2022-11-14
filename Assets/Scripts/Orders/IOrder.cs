@@ -7,4 +7,6 @@ public interface IOrder //starting to think I should've made this an abstract cl
 
     Vector3 GetLocation();
     string GetOrderType();
+    void StartOrder();
+    void CancelOrder();
 }

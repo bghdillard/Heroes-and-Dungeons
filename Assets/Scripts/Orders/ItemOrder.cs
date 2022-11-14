@@ -8,12 +8,16 @@ public class ItemOrder : IOrder
     Cell location;
     string toBuild;
     int rotation;
+    bool isStarted;
+    GameObject placeHolder;
 
     public ItemOrder(Cell location, string toBuild, int rotation)
     {
         this.location = location;
         this.toBuild = toBuild;
         this.rotation = rotation;
+        isStarted = false;
+        placeHolder = GameObject.Instantiate(Resources.Load<GameObject>("Preview/" + toBuild));
     }
 
     public Vector3 GetLocation()
@@ -29,6 +33,17 @@ public class ItemOrder : IOrder
     public string GetOrderType()
     {
         return orderType;
+    }
+
+    public void StartOrder()
+    {
+        //update the target item's color;
+        isStarted = true;
+    }
+
+    public void CancelOrder()
+    {
+        //Destroy the placeholder object
     }
 
     public string GetToBuild()

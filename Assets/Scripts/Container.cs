@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Container : MonoBehaviour
+public class Container : MonoBehaviour // Might want to come back in the future and create an Item interface
 {
     public string type;
     public int maxAmount;
