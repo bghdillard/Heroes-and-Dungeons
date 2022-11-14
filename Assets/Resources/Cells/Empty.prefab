@@ -63,3 +63,4 @@ MonoBehaviour:
   - Traversable
   cellName: Empty
   resourceType: None
+  startColor: {r: 0, g: 0, b: 0, a: 0}

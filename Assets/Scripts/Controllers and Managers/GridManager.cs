@@ -53,11 +53,7 @@ public class GridManager : MonoBehaviour
         activeLayer = 3;
         grid = new Cell[100, 4, 100];
         StartCoroutine(DungeonBuilder.BuildGrid(grid, activeLayer, worldGeography,cellHolder, xOffset, yOffset, seed));
-    }
-
-    public static Cell[ , , ] GetGrid()
-    {
-        return grid;
+        PlayerControls.SetInfo(grid, activeLayer);
     }
 
     public static bool CheckAdjacent(Cell toCheck) //Checks to see if the cell attempting to be accessed can be accessed

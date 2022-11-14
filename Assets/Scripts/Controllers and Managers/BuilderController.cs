@@ -45,7 +45,6 @@ public class BuilderController : MonoBehaviour
                             for (int y = 1; y < path.corners.Length; y++)
                             {
                                 distance += Vector3.Distance(path.corners[y - 1], path.corners[y]);
-
                             }
                             Debug.Log("Final distance on this path is " + distance);
                             if (distance < closestDistance)
@@ -131,6 +130,7 @@ public class BuilderController : MonoBehaviour
 
     public void CancelOrder(IOrder toCancel)
     {
+        toCancel.CancelOrder();
         if (highPriorityQueue.Contains(toCancel)) //If the queue contains the order, remove the order from the queue
         {
             Queue<IOrder> temp = new Queue<IOrder>();
@@ -157,7 +157,7 @@ public class BuilderController : MonoBehaviour
             builderOrders[toCancel].CancelOrder();
             builderOrders.Remove(toCancel);
         }
-        else Debug.Log("Canceled Order not found"); //If none of those contain the order, we have a problem
+        else Debug.LogWarning("Canceled Order not found"); //If none of those contain the order, we have a problem
     }
 
     public void AddToHighQueue(IOrder toAdd)
@@ -175,5 +175,4 @@ public class BuilderController : MonoBehaviour
         activeOrders.Remove(toRemove);
         builderOrders.Remove(toRemove);
     }
-
 }

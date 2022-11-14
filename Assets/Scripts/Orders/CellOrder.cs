@@ -7,11 +7,13 @@ public class CellOrder : IOrder
     private readonly string orderType = "cellBuild";
     Cell location;
     string toBuild;
+    bool isStarted;
 
     public CellOrder(Cell location, string toBuild)
     {
         this.location = location;
         this.toBuild = toBuild;
+        isStarted = false;
     }
 
     public Vector3 GetLocation()
@@ -22,6 +24,17 @@ public class CellOrder : IOrder
     public string GetOrderType()
     {
         return orderType;
+    }
+
+    public void StartOrder()
+    {
+        //update the target Cell's color;
+        isStarted = true;
+    }
+
+    public void CancelOrder()
+    {
+        //return the cell's color to it's original;
     }
 
     public string GetToBuild()

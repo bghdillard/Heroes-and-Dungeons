@@ -115,6 +115,10 @@ MonoBehaviour:
   - Opaque
   cellName: Stone
   resourceType: Gold
+  orderMaterials:
+  - {fileID: 2100000, guid: 168c4f275ba91854fb76d5fa1921289f, type: 2}
+  - {fileID: 2100000, guid: 6caaf0a9eb4688a4c87b4ea93e1ce3f5, type: 2}
+  - {fileID: 2100000, guid: e11b52729ae715b4a9f139fd72c41201, type: 2}
 --- !u!208 &7725168828639838835
 NavMeshObstacle:
   m_ObjectHideFlags: 0

@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 8139953883733263440}
   - component: {fileID: 6939306611551276830}
   - component: {fileID: 2764821278917674962}
-  - component: {fileID: -84499719952063839}
+  - component: {fileID: -755450504454633783}
   m_Layer: 0
   m_Name: Chest
   m_TagString: Untagged
@@ -111,11 +111,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_OverrideArea: 1
+  m_OverrideArea: 0
   m_Area: 1
-  m_IgnoreFromBuild: 0
+  m_IgnoreFromBuild: 1
   m_AffectedAgents: ffffffff
---- !u!114 &-84499719952063839
+--- !u!114 &-755450504454633783
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -130,3 +130,5 @@ MonoBehaviour:
   type: Gold
   maxAmount: 100
   currAmount: 0
+  tentativeAmount: 0
+  UI: {fileID: 0}
