@@ -5,20 +5,26 @@ using UnityEngine;
 public class CellOrder : IOrder
 {
     private readonly string orderType = "cellBuild";
-    Cell location;
+    Cell target;
+    Vector3 location;
     string toBuild;
     bool isStarted;
+    float time;
 
-    public CellOrder(Cell location, string toBuild)
+    public CellOrder(Cell target, string toBuild)
     {
-        this.location = location;
+        this.target = target;
         this.toBuild = toBuild;
+        location = target.transform.position;
         isStarted = false;
+        time = Time.time;
+        target.SetOrder(this);
+        Debug.Log("Order created at " + Time.time);
     }
 
     public Vector3 GetLocation()
     {
-        return location.transform.position;
+        return location;
     }
 
     public string GetOrderType()
@@ -28,13 +34,26 @@ public class CellOrder : IOrder
 
     public void StartOrder()
     {
+        Debug.Log("Before starting this order, isStarted was" + isStarted);
         //update the target Cell's color;
         isStarted = true;
+        target.SetColor(2);
     }
 
     public void CancelOrder()
     {
         //return the cell's color to it's original;
+        target.ResetColor();
+    }
+
+    public bool GetStarted()
+    {
+        return isStarted;
+    }
+
+    public float GetTime()
+    {
+        return time;
     }
 
     public string GetToBuild()
@@ -44,7 +63,7 @@ public class CellOrder : IOrder
 
     public Cell GetCell()
     {
-        return location;
+        return target;
     }
 
     public override bool Equals(object obj)
@@ -58,7 +77,7 @@ public class CellOrder : IOrder
         else
         {
             IOrder toCheck = (IOrder)obj;
-            return location.transform.position == toCheck.GetLocation() && orderType == toCheck.GetOrderType();
+            return location == toCheck.GetLocation() && orderType == toCheck.GetOrderType();
         }
     }
 

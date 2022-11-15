@@ -9,12 +9,14 @@ public class TransitOrder : IOrder
     private GameObject initialTarget;
     private GameObject finalTarget;
     private bool isStarted;
+    private float time;
 
     public TransitOrder(GameObject toGrab, GameObject toTarget)
     {
         initialTarget = toGrab;
         finalTarget = toTarget;
         isStarted = false;
+        time = Time.time;
     }
 
     public Vector3 GetLocation()
@@ -35,6 +37,16 @@ public class TransitOrder : IOrder
     public void CancelOrder()
     {
         Debug.Log("TransitOrder cancel was somehow called, I don't think that should be happening probably");
+    }
+
+    public bool GetStarted()
+    {
+        return isStarted;
+    }
+
+    public float GetTime()
+    {
+        return time;
     }
 
     public GameObject GetToTransit()

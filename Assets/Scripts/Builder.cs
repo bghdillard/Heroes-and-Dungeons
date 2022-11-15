@@ -9,6 +9,7 @@ public class Builder : MonoBehaviour
     private IOrder CurrOrder;
     private NavMeshAgent agent;
     private bool orderStarted;
+    private bool tryClaim;
     private Coroutine activeCoroutine;
     private BuilderController builderController;
 
@@ -26,7 +27,7 @@ public class Builder : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
+        if (tryClaim) ClaimOrder();
         if (CurrOrder != null && !agent.pathPending) //begin by seeing if this builder has a current build order;
         {
             if (!orderStarted) //Look to see if we're still moving to the location
@@ -77,10 +78,49 @@ public class Builder : MonoBehaviour
         }           
     }
 
+    private void ClaimOrder()
+    {
+        tryClaim = false;
+        Vector3 start = CurrOrder.GetLocation(); //get the coordinates of the newly finished order
+        int x = (int)start.x;
+        int y = (int)start.y;
+        int z = (int)start.z;
+        List<Cell> cells = new List<Cell>();
+        for (int i = x - 1; i < x + 2; i++) //look at the cells adjacent and see if they have orders generated at the same time;
+        {         
+            if (i < 0 || i > 99) continue;
+            Cell temp = GridManager.GetCellAt(i, y, z);
+            IOrder order = temp.GetOrder();
+            if (order != null)
+            {
+                if (!order.GetStarted() && CurrOrder.GetTime() == order.GetTime()) cells.Add(temp); //if they do, add them to the list of possible orders;
+            }
+        }
+        for (int i = z - 1; i < z + 2; i++)
+        {
+            if (i < 0 || i > 99) continue;
+            Cell temp = GridManager.GetCellAt(x, y, i);
+            IOrder order = temp.GetOrder();
+            if (order != null)
+            {
+                if (!order.GetStarted() && CurrOrder.GetTime() == order.GetTime()) cells.Add(temp);
+            }
+        }
+        if (cells.Count != 0)
+        {
+            Debug.Log(cells.Count + " Adjacent Cell(s) Found");
+            Cell selected = cells[Random.Range(0, cells.Count)];
+            builderController.ClaimOrder(selected.GetOrder(), this);
+            SetOrder(selected.GetOrder(), builderController.GetClosestPath(selected.GetOrder().GetLocation(), this));
+        }
+        else CurrOrder = null;
+    }
+
     public void SetOrder(IOrder toDo, Vector3 location)
     {
         agent.SetDestination(location);
         CurrOrder = toDo;
+        CurrOrder.StartOrder();
         orderStarted = false;
     }
 
@@ -103,7 +143,8 @@ public class Builder : MonoBehaviour
         CellOrder temp = (CellOrder)CurrOrder;
         GridManager.UpdateGrid(temp.GetCell(), temp.GetToBuild());//now that we're done, remove the order and change the cell
         builderController.RemoveOrder(CurrOrder);
-        CurrOrder = null;
+        tryClaim = true; ; //now that we're done building, try to claim a new ajacent order
+        builderController.DoClaimStutter();
         Debug.Log("Build End");
     }
 
@@ -122,7 +163,8 @@ public class Builder : MonoBehaviour
         ItemOrder temp = (ItemOrder)CurrOrder;
         GridManager.UpdateItemGrid(temp.GetCell(), temp.GetToBuild(), temp.GetRotation());//now that we're done, remove the order and add the item
         builderController.RemoveOrder(CurrOrder);
-        CurrOrder = null;
+        tryClaim = true; //now that we're done building, try to claim a new ajacent order
+        builderController.DoClaimStutter();
         Debug.Log("Build Item End");
     }
 

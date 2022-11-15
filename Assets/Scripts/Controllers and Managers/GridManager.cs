@@ -191,7 +191,10 @@ public class GridManager : MonoBehaviour
          * 180 = 0x, 0z
          * 270 = 1x, 1z
          */
+    }
 
-
+    public static Cell GetCellAt(int x, int y, int z)
+    {
+        return grid[x,y,z];
     }
 }

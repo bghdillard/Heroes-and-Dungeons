@@ -112,14 +112,7 @@ public class PlayerControls : MonoBehaviour
                 Debug.Log(hit.point);
                 Debug.Log(mouseStartPosition);
                 dragSelectStarted = true;
-                if (toBuild[1] == "Cell")
-                {
-                    if (builderController.ContainsOrder(new CellOrder(hit.collider.GetComponent<Cell>(), toBuild[0]))) orderCancelMode = true;
-                }
-                else if(toBuild[1] == "Item")
-                {
-                    if (builderController.ContainsOrder(new ItemOrder(hit.collider.GetComponent<Cell>(), toBuild[1], itemRotation))) orderCancelMode = true;
-                }
+                if (hit.collider.GetComponent<Cell>().GetOrder() != null) orderCancelMode = true;
             }
         }
         else if (Input.GetMouseButton(0) && dragSelectStarted && !buildUI.activeSelf) ResizeSelectionBox();
@@ -270,7 +263,7 @@ public class PlayerControls : MonoBehaviour
                     }
                     else
                     {
-                        if (builderController.ContainsOrder(new CellOrder(cell, toBuild[0]))) if (selectedCells.Add(cell)) cell.SetColor(0); //if we are instead canceling orders, check if this cell has a pending order before adding it to the set and changing its color
+                        if (cell.GetOrder() != null) if (selectedCells.Add(cell)) cell.SetColor(0); //if we are instead canceling orders, check if this cell has a pending order before adding it to the set and changing its color
                     }
                 }
             }
@@ -319,7 +312,7 @@ public class PlayerControls : MonoBehaviour
                         }
                         else
                         {
-                            if (builderController.ContainsOrder(new ItemOrder(cell, toBuild[0], itemRotation))) if (selectedCells.Add(cell)) Debug.Log("Item cancel logged, come back later for visual");
+                            if (cell.GetOrder() != null) if (selectedCells.Add(cell)) Debug.Log("Item cancel logged, come back later for visual");
                         }
                     }
                 }

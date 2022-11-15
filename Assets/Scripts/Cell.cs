@@ -14,6 +14,7 @@ public class Cell : MonoBehaviour
     private List<GameObject> items;
     [SerializeField]
     private List<Material> orderMaterials;
+    private IOrder order;
 
     private void Awake()
     {
@@ -80,5 +81,15 @@ public class Cell : MonoBehaviour
             temp[0] = GetComponent<Renderer>().materials[0];
             GetComponent<Renderer>().materials = temp;
         }
+    }
+
+    public void SetOrder(IOrder toSet)
+    {
+        order = toSet;
+    }
+
+    public IOrder GetOrder()
+    {
+        return order;
     }
 }

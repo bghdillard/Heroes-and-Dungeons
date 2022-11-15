@@ -9,4 +9,6 @@ public interface IOrder //starting to think I should've made this an abstract cl
     string GetOrderType();
     void StartOrder();
     void CancelOrder();
+    bool GetStarted();
+    float GetTime();
 }

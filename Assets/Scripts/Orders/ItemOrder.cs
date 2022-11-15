@@ -10,6 +10,7 @@ public class ItemOrder : IOrder
     int rotation;
     bool isStarted;
     GameObject placeHolder;
+    float time;
 
     public ItemOrder(Cell location, string toBuild, int rotation)
     {
@@ -18,6 +19,8 @@ public class ItemOrder : IOrder
         this.rotation = rotation;
         isStarted = false;
         placeHolder = GameObject.Instantiate(Resources.Load<GameObject>("Preview/" + toBuild));
+        time = Time.time;
+        location.SetOrder(this);
     }
 
     public Vector3 GetLocation()
@@ -44,6 +47,16 @@ public class ItemOrder : IOrder
     public void CancelOrder()
     {
         //Destroy the placeholder object
+    }
+
+    public bool GetStarted()
+    {
+        return isStarted;
+    }
+
+    public float GetTime()
+    {
+        return time;
     }
 
     public string GetToBuild()
