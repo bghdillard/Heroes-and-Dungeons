@@ -31,6 +31,7 @@ public class BuilderController : MonoBehaviour
         {
             if (highPriorityQueue.TryDequeue(out IOrder toDo))
             {
+                Debug.Log("Order removed from queue");
                 Builder closestBuilder = null;
                 NavMeshPath path = new NavMeshPath();
                 float closestDistance = float.MaxValue;
@@ -136,16 +137,20 @@ public class BuilderController : MonoBehaviour
 
     public void CancelOrder(IOrder toCancel)
     {
-        toCancel.CancelOrder();
         if (highPriorityQueue.Contains(toCancel)) //If the queue contains the order, remove the order from the queue
         {
+            Debug.Log("Order in high Queue");
             Queue<IOrder> temp = new Queue<IOrder>();
+            Debug.Log("high queue size before removing: " + highPriorityQueue.Count);
             foreach (IOrder order in highPriorityQueue)
             {
                 if (order == toCancel) continue;
+                Debug.Log("Order not found here");
                 temp.Enqueue(order);
             }
+            Debug.Log("temp queue size after removing: " + temp.Count);
             highPriorityQueue = temp;
+            Debug.Log("high queue size after removing: " + highPriorityQueue.Count);
         }
         else if (lowPriorityQueue.Contains(toCancel))
         {
@@ -164,6 +169,7 @@ public class BuilderController : MonoBehaviour
             builderOrders.Remove(toCancel);
         }
         else Debug.LogWarning("Canceled Order not found"); //If none of those contain the order, we have a problem
+        toCancel.CancelOrder();
     }
 
     public void AddToHighQueue(IOrder toAdd)

@@ -96,7 +96,7 @@ public class Builder : MonoBehaviour
                 if (!order.GetStarted() && CurrOrder.GetTime() == order.GetTime()) cells.Add(temp); //if they do, add them to the list of possible orders;
             }
         }
-        for (int i = z - 1; i < z + 2; i++)
+        for (int i = z - 1; i < z + 2; i++) //now do the same for the z axis;
         {
             if (i < 0 || i > 99) continue;
             Cell temp = GridManager.GetCellAt(x, y, i);
@@ -108,10 +108,66 @@ public class Builder : MonoBehaviour
         }
         if (cells.Count != 0)
         {
-            Debug.Log(cells.Count + " Adjacent Cell(s) Found");
-            Cell selected = cells[Random.Range(0, cells.Count)];
-            builderController.ClaimOrder(selected.GetOrder(), this);
-            SetOrder(selected.GetOrder(), builderController.GetClosestPath(selected.GetOrder().GetLocation(), this));
+            if(cells.Count == 1)
+            {
+                Debug.Log("Only one adjacent");
+                builderController.ClaimOrder(cells[0].GetOrder(), this);
+                SetOrder(cells[0].GetOrder(), builderController.GetClosestPath(cells[0].GetOrder().GetLocation(), this));
+            }
+            else
+            {
+                Debug.Log(cells.Count + " Adjacent Cell(s) Found");
+                Cell currSelected = null;
+                int currAdjacent = int.MaxValue;
+                foreach(Cell cell in cells) //find which cell amoung those we found has the least amount of adjacent orders
+                {
+                    int numAdjacent = 0;
+                    start = cell.GetLocation(); //piggyback off of some previously used variables to make this bit simpler
+                    x = (int)start.x;
+                    y = (int)start.y;
+                    z = (int)start.z;
+                    for (int i = x - 1; i < x + 2; i++) //look at the cells adjacent and see if they have orders generated at the same time;
+                    {
+                        if (i < 0 || i > 99) continue;
+                        Cell temp = GridManager.GetCellAt(i, y, z);
+                        IOrder order = temp.GetOrder();
+                        if (order != null)
+                        {
+                            if (!order.GetStarted() && CurrOrder.GetTime() == order.GetTime())
+                            {
+                                Debug.Log("x adjacent found");
+                                numAdjacent++; //if they do, add 1 to the amount of adjacent cells;
+                            }
+                        }
+                    }
+                    for (int i = z - 1; i < z + 2; i++) //now do the same for the z axis;
+                    {
+                        if (i < 0 || i > 99) continue;
+                        Cell temp = GridManager.GetCellAt(x, y, i);
+                        IOrder order = temp.GetOrder();
+                        if (order != null)
+                        {
+                            if (!order.GetStarted() && CurrOrder.GetTime() == order.GetTime())
+                            {
+                                Debug.Log("z adjacent found");
+                                numAdjacent++;
+                            }
+                        }
+                    }
+                    if (numAdjacent < currAdjacent)
+                    {
+                        currSelected = cell;
+                        currAdjacent = numAdjacent;
+                    }
+                    else if (numAdjacent == currAdjacent)
+                    {
+                        Debug.Log("adjacent amount same");
+                        if (Random.Range(0, 2) == 0) currSelected = cell;
+                    }
+                }
+                builderController.ClaimOrder(currSelected.GetOrder(), this);
+                SetOrder(currSelected.GetOrder(), builderController.GetClosestPath(currSelected.GetOrder().GetLocation(), this));
+            }
         }
         else CurrOrder = null;
     }

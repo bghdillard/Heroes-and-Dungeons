@@ -132,7 +132,7 @@ public class PlayerControls : MonoBehaviour
                     }
                     else
                     {
-                        builderController.CancelOrder(new CellOrder(cell, toBuild[0]));
+                        builderController.CancelOrder(cell.GetOrder());
                         cell.ResetColor();
                     }
                 }
@@ -259,7 +259,10 @@ public class PlayerControls : MonoBehaviour
                 {
                     if (!orderCancelMode)
                     {
-                        if (selectedCells.Add(cell)) cell.SetColor(1); //if a cell is newly added, change it's color
+                        if (cell.GetOrder() == null) //make sure the cell doesn't already have an order
+                        {
+                            if (selectedCells.Add(cell)) cell.SetColor(1); //if a cell is newly added, change it's color
+                        }
                     }
                     else
                     {

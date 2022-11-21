@@ -46,7 +46,9 @@ public class ItemOrder : IOrder
 
     public void CancelOrder()
     {
-        //Destroy the placeholder object
+        //Destroy the placeholder object and remove the order from the cell;
+        GameObject.Destroy(placeHolder);
+        location.CancelOrder();
     }
 
     public bool GetStarted()

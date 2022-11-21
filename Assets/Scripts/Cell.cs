@@ -88,6 +88,11 @@ public class Cell : MonoBehaviour
         order = toSet;
     }
 
+    public void CancelOrder()
+    {
+        order = null;
+    }
+
     public IOrder GetOrder()
     {
         return order;
