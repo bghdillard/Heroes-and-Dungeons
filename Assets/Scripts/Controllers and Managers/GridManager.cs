@@ -148,8 +148,27 @@ public class GridManager : MonoBehaviour
                 }
                 else
                 {
-                    Debug.LogError("Invalid Path for transit");
-                    return null;
+                    NavMeshHit hit = new NavMeshHit();
+                    if (NavMesh.SamplePosition(toTransit.transform.position, out hit, 2, NavMesh.AllAreas))
+                    {
+                        NavMesh.CalculatePath(hit.position, container.transform.position, NavMesh.AllAreas, path);
+                            float distance = Vector3.Distance(toTransit.transform.position, path.corners[0]);
+                        for (int y = 1; y < path.corners.Length; y++)
+                        {
+                            distance += Vector3.Distance(path.corners[y - 1], path.corners[y]); //maybe I'll do some additional math here in the future to create a preference for containers with more open room or that are more secure
+                        }
+                        //Debug.Log("Current closest distance is: " + closestDistance);
+                        if (distance < closestDistance)
+                        {
+                            closestContainer = container;
+                            closestDistance = distance;
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogError("Invalid Path for transit");
+                        return null;
+                    }
                 }
             }
         }
