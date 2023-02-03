@@ -12,21 +12,31 @@ public class Builder : MonoBehaviour
     private bool tryClaim;
     private Coroutine activeCoroutine;
     private BuilderController builderController;
+    [SerializeField]
+    private float originalIdleTime;
+    private float idleTime;
+    private bool recalculateOrderPath;
 
     private void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
-    }
-
-    // Start is called before the first frame update
-    void Start()
-    {
-        
+        idleTime = originalIdleTime;
+        recalculateOrderPath = false;
     }
 
     // Update is called once per frame
     void Update()
     {
+        if (recalculateOrderPath)
+        {
+            Debug.Log("Recalculating order path");
+            Vector3 temp = builderController.GetClosestPath(CurrOrder.GetLocation(), this);
+            if (!temp.Equals(new Vector3()))
+            {
+                agent.SetDestination(temp);
+                recalculateOrderPath = false;
+            }
+        }
         if (tryClaim) ClaimOrder();
         if (CurrOrder != null && !agent.pathPending) //begin by seeing if this builder has a current build order;
         {
@@ -75,7 +85,16 @@ public class Builder : MonoBehaviour
                 }
                 else agent.SetDestination(agent.destination); //and again here, just remember to look here if things are getting expensive;
             }
-        }           
+        }
+        else if (CurrOrder == null && agent.remainingDistance == 0.0) //if we are not currently doing an order or already idleing, decrease time to next idle
+        {
+            idleTime -= Time.deltaTime;
+            if(idleTime <= 0)
+            {
+                Idle();
+                idleTime = originalIdleTime;
+            }
+        }
     }
 
     private void ClaimOrder()
@@ -174,7 +193,8 @@ public class Builder : MonoBehaviour
 
     public void SetOrder(IOrder toDo, Vector3 location)
     {
-        agent.SetDestination(location);
+        if (location.Equals(new Vector3())) recalculateOrderPath = true;
+        else agent.SetDestination(location);
         CurrOrder = toDo;
         CurrOrder.StartOrder();
         orderStarted = false;
@@ -183,6 +203,14 @@ public class Builder : MonoBehaviour
     public bool IsWorking()
     {
         return CurrOrder != null;
+    }
+
+    private void Idle()
+    {
+        Debug.Log("Builder at " + transform.position + " now Idling.");
+        List<Room> rooms = GridManager.GetRooms();
+        Debug.Log("Room count is currently " + rooms.Count);
+        agent.SetDestination(rooms[Random.Range(0, rooms.Count)].GetRandomPoint()); //might be necessary to come back here to ensure the destination lands on the navmesh
     }
 
     IEnumerator BuildCell() //Remember to come back here and connect it to canceling order in some way, same with build item;
@@ -199,7 +227,7 @@ public class Builder : MonoBehaviour
         CellOrder temp = (CellOrder)CurrOrder;
         GridManager.UpdateGrid(temp.GetCell(), temp.GetToBuild());//now that we're done, remove the order and change the cell
         builderController.RemoveOrder(CurrOrder);
-        tryClaim = true; ; //now that we're done building, try to claim a new ajacent order
+        tryClaim = true; ; //now that we're done building, try to claim a new adjacent order
         builderController.DoClaimStutter();
         Debug.Log("Build End");
     }
@@ -219,7 +247,7 @@ public class Builder : MonoBehaviour
         ItemOrder temp = (ItemOrder)CurrOrder;
         GridManager.UpdateItemGrid(temp.GetCell(), temp.GetToBuild(), temp.GetRotation());//now that we're done, remove the order and add the item
         builderController.RemoveOrder(CurrOrder);
-        tryClaim = true; //now that we're done building, try to claim a new ajacent order
+        tryClaim = true; //now that we're done building, try to claim a new adjacent order
         builderController.DoClaimStutter();
         Debug.Log("Build Item End");
     }

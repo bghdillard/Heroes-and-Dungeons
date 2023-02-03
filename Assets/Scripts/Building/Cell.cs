@@ -15,11 +15,42 @@ public class Cell : MonoBehaviour
     [SerializeField]
     private List<Material> orderMaterials;
     private IOrder order;
+    private Room room;
 
     private void Awake()
     {
         items = new List<GameObject>();
         //startColor = GetComponent<Renderer>().material.color;
+    }
+
+    public void CheckRoomStatus()
+    {
+        List<Cell> adjacentCells = GridManager.GetAdjacent(transform.position);
+        List<Room> adjacentRooms = new List<Room>();
+        foreach (Cell cell in adjacentCells)
+        {
+            if (cell.GetName() == cellName && !adjacentRooms.Contains(cell.GetRoom())) adjacentRooms.Add(cell.GetRoom());
+        }
+        Debug.Log("This cell is adjacent to " + adjacentRooms.Count + " rooms.");
+        if (adjacentRooms.Count == 0) room = new Room(this);
+        else if (adjacentRooms.Count == 1) adjacentRooms[0].AddCell(this);
+        else
+        {
+            Debug.Log("Finding Largest Room");
+            Room largestRoom = null;
+            int largestSize = int.MinValue;
+            foreach (Room room in adjacentRooms)
+            {
+                if (room.GetSize() > largestSize)
+                {
+                    largestSize = room.GetSize();
+                    largestRoom = room;
+                }
+            }
+            Debug.Log("Largest Room found: contains " + largestRoom.GetSize() + " Cells");
+            foreach (Room room in adjacentRooms) if (!room.Equals(largestRoom)) largestRoom.MergeRoom(room);
+            largestRoom.AddCell(this);
+        }
     }
 
     public bool TraitsContains(string toCheck)
@@ -96,5 +127,15 @@ public class Cell : MonoBehaviour
     public IOrder GetOrder()
     {
         return order;
+    }
+
+    public Room GetRoom()
+    {
+        return room;
+    }
+
+    public void SetRoom(Room toSet)
+    {
+        room = toSet;
     }
 }

@@ -19,6 +19,7 @@ public class GridManager : MonoBehaviour
     */
     private static Dictionary<string, int> dungeonStats;
     private static Dictionary<string, List<Container>> containers;
+    private static List<Room> rooms;
     //private static List<NavMeshBuildSource> sources;
 
     public float xOffset;
@@ -49,9 +50,10 @@ public class GridManager : MonoBehaviour
             {"Ore", new List<Container>()},
             {"Weapons", new List<Container>()}
         };
-        Instantiate(Resources.Load<GameObject>("Special/Ground"), worldGeography.transform).layer = 6;
+        rooms = new List<Room>();
         activeLayer = 3;
         grid = new Cell[100, 4, 100];
+        Instantiate(Resources.Load<GameObject>("Special/Ground"), worldGeography.transform).layer = 6;
         StartCoroutine(DungeonBuilder.BuildGrid(grid, activeLayer, worldGeography,cellHolder, xOffset, yOffset, seed));
         PlayerControls.SetInfo(grid, activeLayer);
     }
@@ -85,6 +87,19 @@ public class GridManager : MonoBehaviour
         return false;
     }
 
+    public static List<Cell> GetAdjacent(Vector3 center) //return a list containing the four adjacent cells
+    {
+        List<Cell> toReturn = new List<Cell>();
+        int x = (int)center.x;
+        int y = (int)center.y;
+        int z = (int)center.z;
+        if (x - 1 >= 0) toReturn.Add(grid[x - 1, y, z]);
+        if (x + 1 <= 99) toReturn.Add(grid[x + 1, y, z]);
+        if (z - 1 >= 0) toReturn.Add(grid[x, y, z - 1]);
+        if (z + 1 <= 99) toReturn.Add(grid[x, y, z + 1]);
+        return toReturn;
+    }
+
     public static void UpdateGrid(Cell toUpdate, string toFetch) //Changes the cell in toUpdate with the one stored in toFetch
     {
         Vector3 location = toUpdate.GetLocation();
@@ -112,6 +127,7 @@ public class GridManager : MonoBehaviour
         }
         //updateMesh = true;
         worldGeography.GetComponent<NavMeshSurface>().UpdateNavMesh(worldGeography.GetComponent<NavMeshSurface>().navMeshData); // I want to come back here to see if I can find a more cost-effective way of doing this. I would love to see if there was a way to just add a single 1x1 cube to the existing mesh
+        temp.GetComponent<Cell>().CheckRoomStatus();
     }
     
     private static void UpdateResources(Container updateFrom)
@@ -210,6 +226,21 @@ public class GridManager : MonoBehaviour
          * 180 = 0x, 0z
          * 270 = 1x, 1z
          */
+    }
+
+    public static void AddRoom(Room toAdd)
+    {
+        rooms.Add(toAdd);
+    }
+
+    public static void RemoveRoom(Room toRemove)
+    {
+        rooms.Remove(toRemove);
+    }
+
+    public static List<Room> GetRooms()
+    {
+        return rooms;
     }
 
     public static Cell GetCellAt(int x, int y, int z)
