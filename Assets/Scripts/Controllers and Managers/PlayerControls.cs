@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class PlayerControls : MonoBehaviour
 {
@@ -8,13 +9,20 @@ public class PlayerControls : MonoBehaviour
     [SerializeField]
     private GameObject buildUI;
     [SerializeField]
+    private GameObject recruitUI;
+    [SerializeField]
     private BuilderController builderController;
     [SerializeField]
     new private Camera camera;
 
+    [SerializeField]
+    private string faction;
     private List<string> toBuild;
+    private string toRecruit;
 
     private bool buildMode;
+    private bool recruitMode;
+
     private static int activeLayer;
     private static Cell[,,] grid;
     private HashSet<Cell> selectedCells;
@@ -83,6 +91,8 @@ public class PlayerControls : MonoBehaviour
         }
         */
         if (buildMode) HandleBuildInput();
+        if (recruitMode) HandleRecruitInput();
+        if (false && !buildMode && !recruitMode) ResizeSelectionBox();
 
     }
 
@@ -151,7 +161,25 @@ public class PlayerControls : MonoBehaviour
             selectedCells.Clear();
             orderCancelMode = false;
         }
+    }
 
+    private void HandleRecruitInput()
+    {
+        if (Input.GetMouseButtonDown(0))
+        {
+            RaycastHit hit;
+            if (toRecruit != null && Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out hit)
+                && (hit.collider.GetComponent<Cell>() != null && hit.collider.GetComponent<Cell>().TraitsContains("Traversable") || hit.collider.GetComponent<Ground>() != null))
+            {
+                Instantiate(Resources.Load<GameObject>("Monster/" + faction + "/" + toRecruit)).GetComponent<NavMeshAgent>().Warp(hit.point); //, hit.point, new Quaternion());
+                
+            }
+        }
+    }
+
+    public void UpdateToRecruitName(string toUpdate)
+    {
+        toRecruit = toUpdate;
     }
 
     public void UpdateToBuildName(string toUpdate)
@@ -159,6 +187,7 @@ public class PlayerControls : MonoBehaviour
         toBuild[0] = toUpdate;
         Debug.Log("NameChanged");
     }
+
     public void UpdateToBuildType(string toUpdate)
     {
         toBuild[1] = toUpdate;
@@ -173,8 +202,19 @@ public class PlayerControls : MonoBehaviour
 
     public void ToggleBuildMode()
     {
+        recruitMode = false;
+        recruitUI.SetActive(false);
         buildMode = !buildMode;
-        if (buildMode) buildUI.SetActive(true);
+        buildUI.SetActive(buildMode);
+    }
+
+    public void ToggleRecruitMode()
+    {
+        toRecruit = null;
+        buildMode = false;
+        buildUI.SetActive(false);
+        recruitMode = !recruitMode;
+        recruitUI.SetActive(recruitMode);
     }
 
     private void ResizeSelectionBox()
@@ -183,7 +223,7 @@ public class PlayerControls : MonoBehaviour
         float width = Input.mousePosition.x - mouseStartPosition.x;
         float height = Input.mousePosition.y - mouseStartPosition.y;
 
-        selectionBox.anchoredPosition = mouseStartPosition + new Vector2(width / 2, height / 2); //remember that this exists when you want to do something similar to select units
+        selectionBox.anchoredPosition = mouseStartPosition + new Vector2(width / 2, height / 2); //remember that this exists when you want to do something similar to select units. Hey past me, I remember!
         selectionBox.sizeDelta = new Vector2(Mathf.Abs(width), Mathf.Abs(height));
         Bounds bounds = new Bounds(selectionBox.anchoredPosition, selectionBox.sizeDelta);
         

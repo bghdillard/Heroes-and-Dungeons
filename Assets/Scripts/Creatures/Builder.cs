@@ -209,7 +209,8 @@ public class Builder : MonoBehaviour
     {
         Debug.Log("Builder at " + transform.position + " now Idling.");
         List<Room> rooms = GridManager.GetRooms();
-        Debug.Log("Room count is currently " + rooms.Count);
+        Debug.Log("Room count is currently " + rooms.Count + " Rooms are: ");
+        foreach (Room room in rooms) Debug.Log(room);
         agent.SetDestination(rooms[Random.Range(0, rooms.Count)].GetRandomPoint()); //might be necessary to come back here to ensure the destination lands on the navmesh
     }
 

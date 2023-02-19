@@ -17,8 +17,9 @@ public class GridManager : MonoBehaviour
     private static Queue<Order> lowPriorityQueue;
     private static List<Order> activeOrders;
     */
-    private static Dictionary<string, int> dungeonStats;
+    //private static Dictionary<string, int> dungeonStats;
     private static Dictionary<string, List<Container>> containers;
+    private static Dictionary<string, List<Restorative>> restoratives;
     private static List<Room> rooms;
     //private static List<NavMeshBuildSource> sources;
 
@@ -35,7 +36,6 @@ public class GridManager : MonoBehaviour
         highPriorityQueue = new Queue<Order>();
         lowPriorityQueue = new Queue<Order>();
         activeOrders = new List<Order>();
-        */
         dungeonStats = new Dictionary<string, int>() //Cells will add and subtract to here to keep track of important stats
         {
             {"Prestige", 0}, // Prestige will affect progression, higher prestige comes from higher quality cell types and minions, and, in turn, will attract higher quality heroes
@@ -44,16 +44,25 @@ public class GridManager : MonoBehaviour
             {"Ore", 0}, // Some Items will increase the amount of special ores that can be held for the use of crafting
             {"Weapons", 0 } // Special weapons will need to be stored in specific armory items
         };
+        */
         containers = new Dictionary<string, List<Container>>() //Containers will be added to here to keep track of their locations for the builders
         {
             {"Gold", new List<Container>()},
             {"Ore", new List<Container>()},
             {"Weapons", new List<Container>()}
         };
+        restoratives = new Dictionary<string, List<Restorative>>() //Restorative items will be added here to keep track of their locations for the monsters that need them
+        {
+            {"Health", new List<Restorative>()},
+            {"Stamina", new List<Restorative>()},
+            {"Magic", new List<Restorative>()}
+        };
         rooms = new List<Room>();
         activeLayer = 3;
         grid = new Cell[100, 4, 100];
-        Instantiate(Resources.Load<GameObject>("Special/Ground"), worldGeography.transform).layer = 6;
+        GameObject ground = Instantiate(Resources.Load<GameObject>("Special/Ground"), worldGeography.transform);
+        ground.layer = 6;
+        ground.AddComponent<Ground>();
         StartCoroutine(DungeonBuilder.BuildGrid(grid, activeLayer, worldGeography,cellHolder, xOffset, yOffset, seed));
         PlayerControls.SetInfo(grid, activeLayer);
     }
@@ -132,7 +141,7 @@ public class GridManager : MonoBehaviour
     
     private static void UpdateResources(Container updateFrom)
     {
-        dungeonStats[updateFrom.type] += updateFrom.maxAmount;
+        DungeonStats.UpdateStat(updateFrom.type, updateFrom.maxAmount);
         containers[updateFrom.type].Add(updateFrom);
     }
 
@@ -241,6 +250,21 @@ public class GridManager : MonoBehaviour
     public static List<Room> GetRooms()
     {
         return rooms;
+    }
+
+    public static void AddRestorative(Restorative toAdd, string type)
+    {
+        restoratives[type].Add(toAdd);
+    }
+
+    public static void RemoveRestorative(Restorative toRemove, string type)
+    {
+        restoratives[type].Remove(toRemove);
+    }
+
+    public static List<Restorative> GetRestoratives(string type)
+    {
+        return restoratives[type];
     }
 
     public static Cell GetCellAt(int x, int y, int z)

@@ -66,7 +66,7 @@ public static class DungeonBuilder
         BuilderController builderController = GameObject.Find("GameController").GetComponent<BuilderController>();
         for (int i = 0; i < 4; i++)
         {
-            temp = Object.Instantiate(Resources.Load<GameObject>("Undead/Builder"));
+            temp = Object.Instantiate(Resources.Load<GameObject>("Monster/Undead/Builder"));
             builderController.AddBuilder(temp.GetComponent<Builder>());
             if (i % 2 == 0) temp.GetComponent<NavMeshAgent>().Warp(new Vector3(-49 + i * 2 - 2, activeLayer, +49));
             else temp.GetComponent<NavMeshAgent>().Warp(new Vector3(-49, activeLayer, 49 + (i - 1) * 2 - 2));

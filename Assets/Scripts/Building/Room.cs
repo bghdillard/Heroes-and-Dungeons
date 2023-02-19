@@ -72,4 +72,9 @@ public class Room : MonoBehaviour
         Debug.Log("Room.GetHashCode called");
         return cells[0].GetHashCode();
     }
+
+    public override string ToString()
+    {
+        return cells[0].ToString();
+    }
 }
