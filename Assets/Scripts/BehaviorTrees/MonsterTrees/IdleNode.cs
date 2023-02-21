@@ -18,18 +18,20 @@ public class IdleNode : Node
     }
     public override NodeState Evaluate()
     {
+        /*
         Debug.Log("Idle Eval Started");
         Debug.Log("monster distance equality is: " + agent.remainingDistance);
         Debug.Log("IdleTimer is: " + currTimer);
+        */
         if(agent.remainingDistance <= 0.05f && (currTimer -= Time.deltaTime) <= 0)
         {
-            Debug.Log("Idle set target Started");
+            //Debug.Log("Idle set target Started");
             currTimer = initialTimer;
             List<Room> rooms = GridManager.GetRooms();
             if (rooms.Count == 1) agent.SetDestination(rooms[0].GetRandomPoint());
             else agent.SetDestination(rooms[Random.Range(1, rooms.Count)].GetRandomPoint());
         }
-        Debug.Log("Monster is currently idling");
+        //Debug.Log("Monster is currently idling");
         return NodeState.RUNNING;
     }
 }

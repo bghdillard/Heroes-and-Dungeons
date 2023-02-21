@@ -15,11 +15,15 @@ public class RestorePathfindNode : Node
 
     public override NodeState Evaluate()
     {
-        Restorative target = (Restorative)parent.GetData("Target");
-
+        InteractionPoint target = (InteractionPoint)parent.GetData("Target");
         Vector3 location = target.GetLocation();
-        if (Vector3.Distance(agent.transform.position, location) <= 0.01) return NodeState.SUCCESS;
         agent.SetDestination(location);
+        if (agent.remainingDistance <= 0.01)
+        {
+            Debug.Log("Arrived At Location");
+            return NodeState.SUCCESS;
+        }
+        Debug.Log("Still moving, " + Vector3.Distance(agent.transform.position, location) + " left to go");
         return NodeState.RUNNING;
     }
 }

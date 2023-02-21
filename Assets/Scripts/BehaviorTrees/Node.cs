@@ -48,24 +48,30 @@ namespace BehaviorTree
 
         public void SetData(string key, object value)
         {
+            Debug.Log("We are creating data with key " + key);
             data.Add(key, value);
         }
 
         public object GetData(string key)
         {
+            Debug.Log("Node Checking for Data " + key);
             if (data.ContainsKey(key))
             {
+                Debug.Log("Data Found");
                 return data[key];
             }
             if(parent != null)
             {
+                Debug.Log("Data Not Found, but have a parent");
                 return parent.GetData(key);
             }
+            Debug.Log("I'm the root with out the data");
             return null;
         }
 
         public bool RemoveData(string key)
         {
+            Debug.Log("We are Removing Data of key " + key); 
             if(data[key] != null)
             {
                 data.Remove(key);

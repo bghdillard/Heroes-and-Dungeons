@@ -51,6 +51,8 @@ public abstract class Monster : Creature
     private string monsterName;
     [SerializeField]
     private float idleTimer;
+    [SerializeField]
+    private GameObject selectionCircle;
 
     private bool isSelected;
 
@@ -67,7 +69,7 @@ public abstract class Monster : Creature
     private PatrolGroup group;
     private bool groupAddition;
 
-    protected override void Start()
+    protected void Awake()
     {
         Debug.Log("Monster Start");
         //set the initial stats
@@ -108,7 +110,6 @@ public abstract class Monster : Creature
         groupAddition = false;
         targetChanged = false;
         agent = GetComponent<NavMeshAgent>();
-        base.Start();
     }
     
     // Update is called once per frame
@@ -120,6 +121,7 @@ public abstract class Monster : Creature
             currStatDecay = Random.Range(statDecayMin, statDecayMax);
             switch (Random.Range(0, 2)){
                 case 0:
+                    Debug.Log("Magic Decay");
                     currMaxMagic -= Random.Range(1, (int)(maxMagic * 0.1));
                     if (currMaxMagic < 0)
                     {
@@ -127,8 +129,16 @@ public abstract class Monster : Creature
                         currLoyalty -= Random.Range(1, (int)(maxLoyalty * 0.1));
                     }
                     if (currMagic > currMaxMagic) currMagic = currMaxMagic;
+                    if (isSelected)
+                    {
+                        maxMagicBar.maxValue = maxMagic;
+                        maxMagicBar.value = currMaxMagic;
+                        currMagicBar.value = currMagic;
+                    }
+                    Debug.Log("Magic cap is now " + currMaxMagic);
                     break;
                 case 1:
+                    Debug.Log("Stamina Decay");
                     currMaxStamina -= Random.Range(1, (int)(maxStamina * 0.1));
                     if (currMaxStamina <= 0)
                     {
@@ -136,6 +146,13 @@ public abstract class Monster : Creature
                         currLoyalty -= Random.Range(1, (int)(maxLoyalty * 0.1));
                     }
                     if (currStamina > currMaxStamina) currStamina = currMaxStamina;
+                    if (isSelected)
+                    {
+                        maxStaminaBar.maxValue = maxStamina;
+                        maxStaminaBar.value = currMaxStamina;
+                        currStaminaBar.value = currStamina;
+                    }
+                    Debug.Log("Stamina cap is now " + currMaxStamina);
                     break;
                 default:
                     Debug.LogError("stat decay on monster landed on a nonexistent stat");
@@ -149,6 +166,7 @@ public abstract class Monster : Creature
             {
                 currHealth += (int)Random.Range(1, currMaxHealth * 0.10f);
                 if (currHealth > currMaxHealth) currHealth = currMaxHealth;
+                if (isSelected) currHealthBar.value = currHealth; ;
             }
         }
         if ((currStaminaRegain -= Time.deltaTime) <= 0)
@@ -158,6 +176,7 @@ public abstract class Monster : Creature
             {
                 currStamina += (int)Random.Range(1, currMaxStamina * 0.10f);
                 if (currStamina > currMaxStamina) currStamina = currMaxStamina;
+                if (isSelected) currStaminaBar.value = currStamina;
             }
         }
         if ((currMagicRegain -= Time.deltaTime) <= 0)
@@ -167,6 +186,7 @@ public abstract class Monster : Creature
             {
                 currMagic += (int)Random.Range(1, currMaxMagic * 0.10f);
                 if (currMagic > currMaxMagic) currMagic = currMaxMagic;
+                if (isSelected) currMagicBar.value = currMagic;
             }
         }
         base.Update();
@@ -373,18 +393,36 @@ public abstract class Monster : Creature
         nameText.text = monsterName;
         maxHealthBar.maxValue = maxHealth;
         maxHealthBar.value = currMaxHealth;
-        currHealthBar.maxValue = currMaxHealth;
+        currHealthBar.maxValue = maxHealth;
         currHealthBar.value = currHealth;
+
+        maxStaminaBar.maxValue = maxStamina;
+        maxStaminaBar.value = currMaxStamina;
+        currStaminaBar.maxValue = maxStamina;
+        currStaminaBar.value = currStamina;
+
+        maxMagicBar.maxValue = maxMagic;
+        maxMagicBar.value = currMaxMagic;
+        currMagicBar.maxValue = maxMagic;
+        currMagicBar.value = currMagic;
+
         maxLoyaltyBar.maxValue = maxLoyalty;
         maxLoyaltyBar.value = currMaxLoyalty;
-        currLoyaltyBar.maxValue = currMaxLoyalty;
+        currLoyaltyBar.maxValue = maxLoyalty;
         currLoyaltyBar.value = currLoyalty;
+
         monsterPanel.SetActive(true);
         isSelected = true;
     }
 
+    public void PseudoSelect()
+    {
+        selectionCircle.SetActive(true);
+    }
+
     public void Deselect()
     {
+        selectionCircle.SetActive(false);
         monsterPanel.SetActive(false);
         isSelected = false;
     }

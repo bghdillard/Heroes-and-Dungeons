@@ -139,10 +139,10 @@ public class GridManager : MonoBehaviour
         temp.GetComponent<Cell>().CheckRoomStatus();
     }
     
-    private static void UpdateResources(Container updateFrom)
+    public static void UpdateResources(Container updateFrom)
     {
-        DungeonStats.UpdateStat(updateFrom.type, updateFrom.maxAmount);
-        containers[updateFrom.type].Add(updateFrom);
+        DungeonStats.UpdateStat(updateFrom.itemType, updateFrom.maxAmount);
+        containers[updateFrom.itemType].Add(updateFrom);
     }
 
     public static Container GetClosestValidContainer(Resource toTransit, string type)
@@ -225,9 +225,12 @@ public class GridManager : MonoBehaviour
             temp.transform.localPosition = new Vector3(0.5f - (temp.transform.localScale.x / 2), -0.5f + (temp.transform.localScale.y / 2), 0);
         }
 
-        Container toAdd = temp.GetComponent<Container>();
-        if (toAdd != null) UpdateResources(toAdd); //If the item being added is a container, add it's stat changes to the dungeon
+        //Container toAdd = temp.GetComponent<Container>();
+        //if (toAdd != null) UpdateResources(toAdd); //If the item being added is a container, add it's stat changes to the dungeon. This'll now be done in Containers awake.
         temp.layer = toUpdate.gameObject.layer; //because the item is inside a cell, it should have the same layer
+        /*Vector3 toModify = temp.transform.position;
+        toModify.y += temp.transform.localScale.y / 2; 
+        temp.transform.position = toModify;*/
         
         /* notes for rotaion:
          * 0 = 0x, 0z
@@ -254,16 +257,20 @@ public class GridManager : MonoBehaviour
 
     public static void AddRestorative(Restorative toAdd, string type)
     {
+        Debug.Log("Restorative of type: " + type + " added");
         restoratives[type].Add(toAdd);
+        Debug.Log("There are now " + restoratives[type].Count + " restoratives of this type");
     }
 
     public static void RemoveRestorative(Restorative toRemove, string type)
     {
+        Debug.Log("Removing a restorative of type " + type);
         restoratives[type].Remove(toRemove);
     }
 
     public static List<Restorative> GetRestoratives(string type)
     {
+        Debug.Log("There are currently " + restoratives[type].Count + " restoratives of type " + type);
         return restoratives[type];
     }
 

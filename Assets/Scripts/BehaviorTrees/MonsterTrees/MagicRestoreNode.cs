@@ -14,10 +14,16 @@ public class MagicRestoreNode : Node
 
     public override NodeState Evaluate()
     {
-        NodeState toReturn = monster.GetHealthMax() ? NodeState.SUCCESS : NodeState.RUNNING;
+        InteractionPoint point = (InteractionPoint)parent.GetData("Target");
+        point.CheckUse();
+        NodeState toReturn = monster.GetMagicMax() ? NodeState.SUCCESS : NodeState.RUNNING;
         if (toReturn == NodeState.SUCCESS)
         {
+            Restorative temp = (Restorative)parent.GetData("Restorative");
+            temp.RemoveUser((InteractionPoint)parent.GetData("Target"));
             parent.RemoveData("Target");
+            parent.RemoveData("Restorative");
+            parent.parent.RemoveData("MagicRestore");
         }
         return toReturn;
     }
