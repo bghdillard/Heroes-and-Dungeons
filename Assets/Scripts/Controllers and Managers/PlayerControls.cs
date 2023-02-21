@@ -134,6 +134,7 @@ public class PlayerControls : MonoBehaviour
             //selectionBox.sizeDelta = Vector2.zero;
             //selectionBox.gameObject.SetActive(false);
             //Generate all the orders;
+            HashSet<IOrder> orders = new HashSet<IOrder>();
             foreach (Cell cell in selectedCells)
             {
                 if (toBuild[1] == "Cell")
@@ -145,7 +146,8 @@ public class PlayerControls : MonoBehaviour
                     }
                     else
                     {
-                        builderController.CancelOrder(cell.GetOrder());
+                        orders.Add(cell.GetOrder());
+                        //builderController.CancelOrder(cell.GetOrder());
                         cell.ResetColor();
                     }
                 }
@@ -157,10 +159,12 @@ public class PlayerControls : MonoBehaviour
                     }
                     else
                     {
-                        builderController.CancelOrder(new ItemOrder(cell, toBuild[0], itemRotation));
+                        orders.Add(new ItemOrder(cell, toBuild[0], itemRotation));
+                        //builderController.CancelOrder(new ItemOrder(cell, toBuild[0], itemRotation));
                     }
                 }
             }
+            if (orders.Count != 0) builderController.CancelOrder(orders);
             selectedCells.Clear();
             orderCancelMode = false;
         }

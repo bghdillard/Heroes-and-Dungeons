@@ -76,7 +76,7 @@ public class ItemOrder : IOrder
         //Check for null and compare types.
         if ((obj == null) || !GetType().Equals(obj.GetType()))
         {
-            Debug.Log("Type Inequality in Order equals");
+            //Debug.Log("Type Inequality in Order equals");
             return false;
         }
         else

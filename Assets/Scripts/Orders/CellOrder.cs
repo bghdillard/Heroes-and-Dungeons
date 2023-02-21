@@ -69,11 +69,11 @@ public class CellOrder : IOrder
 
     public override bool Equals(object obj)
     {
-        Debug.Log("CellOrder Equals Called");
+        //Debug.Log("CellOrder Equals Called");
         //Check for null and compare types.
         if ((obj == null) || !GetType().Equals(obj.GetType()))
         {
-            Debug.Log("Type Inequality in Order equals");
+            //Debug.Log("Type Inequality in Order equals");
             return false;
         }
         else
@@ -85,7 +85,7 @@ public class CellOrder : IOrder
 
     public override int GetHashCode()
     {
-        Debug.Log("Order.GetHashCode called");
+        //Debug.Log("Order.GetHashCode called");
         return location.GetHashCode() + orderType.GetHashCode(); //this may be problematic, but I don't really know enough about hashcodes to immediately know
     }
 }
