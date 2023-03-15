@@ -13,13 +13,18 @@ public class Cell : MonoBehaviour
     private string resourceType;
     private List<GameObject> items;
     [SerializeField]
-    private List<Material> orderMaterials;
+    private List<Color> orderColors;
+    [SerializeField]
+    private List<Renderer> renderers;
+    private List<Material> materials;
     private IOrder order;
     private Room room;
 
     private void Awake()
     {
         items = new List<GameObject>();
+        materials = new List<Material>();
+        foreach (Renderer renderer in renderers) materials.AddRange(renderer.materials);
         //startColor = GetComponent<Renderer>().material.color;
     }
 
@@ -51,6 +56,13 @@ public class Cell : MonoBehaviour
             foreach (Room room in adjacentRooms) if (!room.Equals(largestRoom)) largestRoom.MergeRoom(room);
             largestRoom.AddCell(this);
         }
+    }
+
+    public void ShowSide(int toSet, bool show)
+    {
+        if (toSet >= renderers.Capacity) return;
+        GameObject toDo = renderers[toSet].gameObject;
+        toDo.SetActive(show);
     }
 
     public bool TraitsContains(string toCheck)
@@ -91,26 +103,35 @@ public class Cell : MonoBehaviour
     public void SetColor(int toSet)
     {
         //Debug.Log("Cell SetColor called");
-        Renderer renderer = GetComponent<Renderer>();
-        if (renderer != null)
+        if (materials != null)
         {
-            //GetComponent<Renderer>().material.color = toSet;
+            /*SetComponent<Renderer>().material.color = toSet;
+            List<Material> materials = renderer.materials;
             Material[] temp = new Material[2];
             temp[0] = GetComponent<Renderer>().materials[0];
             temp[1] = orderMaterials[toSet];
             GetComponent<Renderer>().materials = temp;
+            */
+            foreach(Material material in materials)
+            {
+                material.EnableKeyword("_EMISSION");
+                material.SetColor("_EmissionColor", orderColors[toSet]);
+            }
         }
     }
 
     public void ResetColor()
     {
         //Debug.Log("Cell ResetColor called");
-        Renderer renderer = GetComponent<Renderer>();
-        if (renderer != null)
+        //Renderer renderer = GetComponent<Renderer>();
+        if (materials != null)
         {
+            foreach (Material material in materials) material.DisableKeyword("_EMISSION");
+            /*
             Material[] temp = new Material[1];
             temp[0] = GetComponent<Renderer>().materials[0];
             GetComponent<Renderer>().materials = temp;
+            */
         }
     }
 

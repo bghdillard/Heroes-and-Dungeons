@@ -119,13 +119,13 @@ public class PlayerControls : MonoBehaviour
             //mouseStartPosition = Input.mousePosition;
             RaycastHit hit;
             LayerMask mask = LayerMask.GetMask("Active Layer");
-            if (Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out hit, 300, mask) && hit.collider.GetComponent<Cell>() != null)
+            if (Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out hit, 300, mask) && hit.collider.GetComponentInParent<Cell>() != null)
             {
                 mouseStartPosition = hit.point;
                 Debug.Log(hit.point);
                 Debug.Log(mouseStartPosition);
                 dragSelectStarted = true;
-                if (hit.collider.GetComponent<Cell>().GetOrder() != null) orderCancelMode = true;
+                if (hit.collider.GetComponentInParent<Cell>().GetOrder() != null) orderCancelMode = true;
             }
         }
         else if (Input.GetMouseButton(0) && dragSelectStarted && !buildUI.activeSelf) ResizeCellBox();
@@ -176,7 +176,7 @@ public class PlayerControls : MonoBehaviour
         {
             RaycastHit hit;
             if (toRecruit != null && Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out hit)
-                && (hit.collider.GetComponent<Cell>() != null && hit.collider.GetComponent<Cell>().TraitsContains("Traversable") || hit.collider.GetComponent<Ground>() != null))
+                && (hit.collider.GetComponentInParent<Cell>() != null && hit.collider.GetComponentInParent<Cell>().TraitsContains("Traversable") || hit.collider.GetComponent<Ground>() != null))
             {
                 GameObject recruit = Instantiate(Resources.Load<GameObject>("Monster/" + faction + "/" + toRecruit)); //, hit.point, new Quaternion());
                 recruit.GetComponent<NavMeshAgent>().Warp(hit.point);

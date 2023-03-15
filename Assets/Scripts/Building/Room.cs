@@ -58,7 +58,7 @@ public class Room : MonoBehaviour
 
     public override bool Equals(object other)
     {
-        Debug.Log("Room.equals called");
+        //Debug.Log("Room.equals called");
         if (other == null || !GetType().Equals(other.GetType())) return false;
         else
         {
@@ -69,7 +69,7 @@ public class Room : MonoBehaviour
 
     public override int GetHashCode()
     {
-        Debug.Log("Room.GetHashCode called");
+        //Debug.Log("Room.GetHashCode called");
         return cells[0].GetHashCode();
     }
 

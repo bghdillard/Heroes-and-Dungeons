@@ -9,7 +9,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6609892566646818207}
-  - component: {fileID: 898249221463953449}
   - component: {fileID: 5055430361587523052}
   m_Layer: 0
   m_Name: Cafeteria
@@ -26,26 +25,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8720853545167394650}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: -0.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1976044071291150620}
   m_Father: {fileID: 0}
-  m_RootOrder: 13
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &898249221463953449
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8720853545167394650}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 1
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &5055430361587523052
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -64,4 +51,72 @@ MonoBehaviour:
   - Stamina
   cellName: Cafeteria
   resourceType: None
-  orderMaterials: []
+  orderColors:
+  - {r: 0.5176471, g: 0, b: 0, a: 0.47058824}
+  - {r: 0.7607843, g: 0.7647059, b: 0.101960786, a: 0.47058824}
+  - {r: 0.21960784, g: 0.5647059, b: 0.08235294, a: 0.47058824}
+  renderers: []
+--- !u!1001 &267935979859414741
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 2
+    m_TransformParent: {fileID: 6609892566646818207}
+    m_Modifications:
+    - target: {fileID: 1791227344950816713, guid: e891e24bcad30bf42b8f88ea7463cf17, type: 3}
+      propertyPath: m_RootOrder
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1791227344950816713, guid: e891e24bcad30bf42b8f88ea7463cf17, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1791227344950816713, guid: e891e24bcad30bf42b8f88ea7463cf17, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1791227344950816713, guid: e891e24bcad30bf42b8f88ea7463cf17, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1791227344950816713, guid: e891e24bcad30bf42b8f88ea7463cf17, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1791227344950816713, guid: e891e24bcad30bf42b8f88ea7463cf17, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1791227344950816713, guid: e891e24bcad30bf42b8f88ea7463cf17, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1791227344950816713, guid: e891e24bcad30bf42b8f88ea7463cf17, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1791227344950816713, guid: e891e24bcad30bf42b8f88ea7463cf17, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1791227344950816713, guid: e891e24bcad30bf42b8f88ea7463cf17, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1791227344950816713, guid: e891e24bcad30bf42b8f88ea7463cf17, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4365434902887942193, guid: e891e24bcad30bf42b8f88ea7463cf17, type: 3}
+      propertyPath: m_Name
+      value: Floor
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_AddedGameObjects: []
+  m_SourcePrefab: {fileID: 100100000, guid: e891e24bcad30bf42b8f88ea7463cf17, type: 3}
+--- !u!4 &1976044071291150620 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1791227344950816713, guid: e891e24bcad30bf42b8f88ea7463cf17, type: 3}
+  m_PrefabInstance: {fileID: 267935979859414741}
+  m_PrefabAsset: {fileID: 0}

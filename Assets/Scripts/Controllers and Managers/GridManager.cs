@@ -63,7 +63,7 @@ public class GridManager : MonoBehaviour
         GameObject ground = Instantiate(Resources.Load<GameObject>("Special/Ground"), worldGeography.transform);
         ground.layer = 6;
         ground.AddComponent<Ground>();
-        StartCoroutine(DungeonBuilder.BuildGrid(grid, activeLayer, worldGeography,cellHolder, xOffset, yOffset, seed));
+        StartCoroutine(DungeonBuilder.BuildGrid(grid, activeLayer, worldGeography, cellHolder, xOffset, yOffset, seed));
         PlayerControls.SetInfo(grid, activeLayer);
     }
 
@@ -115,28 +115,155 @@ public class GridManager : MonoBehaviour
         int x =  (int)location.x;
         int y = (int) location.y;
         int z = (int) location.z;
-        GameObject temp = Instantiate(Resources.Load<GameObject>("Cells/" + toFetch), cellHolder.transform);
-        grid[x, y, z] = temp.GetComponent<Cell>();
+        GameObject temp = Instantiate(Resources.Load<GameObject>("Cells/" + toFetch));//, cellHolder.transform);
+        Cell cell = temp.GetComponent<Cell>();
+        grid[x, y, z] = cell;
         temp.transform.position = location;
         if (y == activeLayer)
         {
             Debug.Log("Built on ActiveLayer");
             temp.layer = 6;
-            if (temp.GetComponent<Cell>().TraitsContains("Transparent") && !temp.GetComponent<Cell>().TraitsContains("Traversable")) grid[x, y-1, z].gameObject.layer = 7;
+            if (cell.TraitsContains("Transparent") && !cell.TraitsContains("Traversable")) grid[x, y-1, z].gameObject.layer = 7;
         }
         else if (y == activeLayer - 1 && grid[x, y + 1, z].TraitsContains("Transparent")) temp.layer = 7;
         else temp.layer = 8;
-        if (toUpdate.GetResourceType() != "None") Instantiate(Resources.Load<GameObject>("Minerals/" + toUpdate.GetResourceType())).transform.position = toUpdate.transform.position;
+        if (cell.TraitsContains("Transparent")) //set the visibilty of this and adjacent cells walls depending on if they'll be visible to the camera;
+        {
+            Cell adjacent;
+            if (x != 99)
+            {
+                adjacent = grid[x + 1, y, z];
+                if (adjacent.TraitsContains("Transparent"))
+                {
+                    cell.ShowSide(1, false);
+                    adjacent.ShowSide(2, false);
+                }
+                else
+                {
+                    cell.ShowSide(1, true);
+                    adjacent.ShowSide(2, true); //I still need to more concretely decide what happens where transparent and opaque cells meet;
+                }
+            }
+
+            if (x != 0)
+            {
+                adjacent = grid[x - 1, y, z];
+                if (adjacent.TraitsContains("Transparent"))
+                {
+                    cell.ShowSide(2, false);
+                    adjacent.ShowSide(1, false);
+                }
+                else
+                {
+                    cell.ShowSide(2, true);
+                    adjacent.ShowSide(1, true);
+                }
+            }
+
+            if (z != 99)
+            {
+                adjacent = grid[x, y, z + 1];
+                if (adjacent.TraitsContains("Transparent"))
+                {
+                    cell.ShowSide(4, false);
+                    adjacent.ShowSide(3, false);
+                }
+                else
+                {
+                    cell.ShowSide(4, true);
+                    adjacent.ShowSide(3, true);
+                }
+            }
+
+            if (z != 0)
+            {
+                adjacent = grid[x, y, z - 1];
+                if (adjacent.TraitsContains("Transparent"))
+                {
+                    cell.ShowSide(3, false);
+                    adjacent.ShowSide(4, false);
+                }
+                else
+                {
+                    cell.ShowSide(3, true);
+                    adjacent.ShowSide(4, true);
+                }
+            }
+        }
+        else
+        {
+            Cell adjacent;
+            if (x != 99)
+            {
+                adjacent = grid[x + 1, y, z];
+                if (adjacent.TraitsContains("Transparent"))
+                {
+                    cell.ShowSide(1, true);
+                    adjacent.ShowSide(2, true);
+                }
+                else
+                {
+                    cell.ShowSide(1, false);
+                    adjacent.ShowSide(2, false); //I still need to more concretely decide what happens where transparent and opaque cells meet;
+                }
+            }
+
+            if (x != 0)
+            {
+                adjacent = grid[x - 1, y, z];
+                if (adjacent.TraitsContains("Transparent"))
+                {
+                    cell.ShowSide(2, true);
+                    adjacent.ShowSide(1, true);
+                }
+                else
+                {
+                    cell.ShowSide(2, false);
+                    adjacent.ShowSide(1, false);
+                }
+            }
+
+            if (z != 99)
+            {
+                adjacent = grid[x, y, z + 1];
+                if (adjacent.TraitsContains("Transparent"))
+                {
+                    cell.ShowSide(2, true);
+                    adjacent.ShowSide(1, true);
+                }
+                else
+                {
+                    cell.ShowSide(2, false);
+                    adjacent.ShowSide(1, false);
+                }
+            }
+
+            if (z != 0)
+            {
+                adjacent = grid[x, y, z - 1];
+                if (adjacent.TraitsContains("Transparent"))
+                {
+                    cell.ShowSide(2, true);
+                    adjacent.ShowSide(1, true);
+                }
+                else
+                {
+                    cell.ShowSide(2, false);
+                    adjacent.ShowSide(1, false);
+                }
+            }
+        }
+
+        if (toUpdate.GetResourceType() != "None")
+            Instantiate(Resources.Load<GameObject>("Minerals/" + toUpdate.GetResourceType())).transform.position = toUpdate.transform.position;
         Destroy(toUpdate.gameObject);
         //Debug.Log(worldGeography.GetComponent<NavMeshSurface>().collectObjects);
-        if (temp.GetComponent<Cell>().TraitsContains("Traversable"))
-        {
-            GameObject floor = Instantiate(Resources.Load<GameObject>("Special/Floor"), worldGeography.transform);
-            floor.transform.position = new Vector3(x, y - 0.5f, z);
-        }
+        if (cell.TraitsContains("Traversable")) temp.transform.parent = worldGeography.transform;
+        else temp.transform.parent = cellHolder.transform;
         //updateMesh = true;
+        
         worldGeography.GetComponent<NavMeshSurface>().UpdateNavMesh(worldGeography.GetComponent<NavMeshSurface>().navMeshData); // I want to come back here to see if I can find a more cost-effective way of doing this. I would love to see if there was a way to just add a single 1x1 cube to the existing mesh
-        temp.GetComponent<Cell>().CheckRoomStatus();
+        cell.CheckRoomStatus();
     }
     
     public static void UpdateResources(Container updateFrom)

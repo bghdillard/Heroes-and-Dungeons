@@ -23,19 +23,54 @@ public static class DungeonBuilder
                     {
                         goldCount++;
                         temp = Object.Instantiate(Resources.Load<GameObject>("Cells/Gold Ore"), cellHolder.transform);
-                        grid[x, y, z] = temp.GetComponent<Cell>();
+                        Cell cell = temp.GetComponent<Cell>();
+                        grid[x, y, z] = cell;
                         temp.transform.position = new Vector3(x, y, z);
-                        if (y == activeLayer) temp.layer = 6;
-                        else temp.layer = 8;
+                        if (y == activeLayer)
+                        {
+                            temp.layer = 6;
+                            for (int i = 0; i < temp.transform.childCount; i++) temp.transform.GetChild(i).gameObject.layer = 6;
+                            if (x == 0) cell.ShowSide(2, true);
+                            else if (x == grid.GetLength(0) - 1) cell.ShowSide(1, true);
+                            if (z == 0) cell.ShowSide(3, true);
+                            else if (z == grid.GetLength(2) - 1) cell.ShowSide(4, true);                     
+                            /*
+                            if (z == 0) cell.ShowSide(1);
+                            if (z == grid.GetLength(0) - 1) cell.ShowSide(2);
+                            if (x == 0) cell.ShowSide(3);
+                            if (x == grid.GetLength(2) - 1) cell.ShowSide(4);
+                            */
+                        }
+                        else
+                        {
+                            temp.layer = 8;
+                            for (int i = 0; i < temp.transform.childCount; i++) temp.transform.GetChild(i).gameObject.layer = 8;
+                            cell.ShowSide(0, true);
+                        }
+                        
                     }
                     else if (0.56 < toUse && toUse < 0.59 || 0.61 < toUse && toUse < 0.66) //generate iron
                     {
                         ironCount++;
                         temp = Object.Instantiate(Resources.Load<GameObject>("Cells/Iron Ore"), cellHolder.transform);
-                        grid[x, y, z] = temp.GetComponent<Cell>();
+                        Cell cell = temp.GetComponent<Cell>();
+                        grid[x, y, z] = cell;
                         temp.transform.position = new Vector3(x, y, z);
-                        if (y == activeLayer) temp.layer = 6;
-                        else temp.layer = 8;
+                        if (y == activeLayer)
+                        {
+                            temp.layer = 6;
+                            for (int i = 0; i < temp.transform.childCount; i++) temp.transform.GetChild(i).gameObject.layer = 6;
+                            if (x == 0) cell.ShowSide(2, true);
+                            else if (x == grid.GetLength(0) - 1) cell.ShowSide(1, true);
+                            if (z == 0) cell.ShowSide(3, true);
+                            else if (z == grid.GetLength(2) - 1) cell.ShowSide(4, true);
+                        }
+                        else
+                        {
+                            temp.layer = 8;
+                            for (int i = 0; i < temp.transform.childCount; i++) temp.transform.GetChild(i).gameObject.layer = 8;
+                            cell.ShowSide(0, true);
+                        }
                     }
                     else
                     {
@@ -43,16 +78,25 @@ public static class DungeonBuilder
                         if (y == activeLayer) //If at the top of the dungeon, use a stone that prevents a navmesh from generating on top
                         {
                             temp = Object.Instantiate(Resources.Load<GameObject>("Cells/Impassable Stone"), cellHolder.transform);
-                            grid[x, y, z] = temp.GetComponent<Cell>();
+                            Cell cell = temp.GetComponent<Cell>();
+                            grid[x, y, z] = cell;
                             temp.transform.position = new Vector3(x, y, z);
                             temp.layer = 6;
+                            for (int i = 0; i < temp.transform.childCount; i++) temp.transform.GetChild(i).gameObject.layer = 6;
+                            if (x == 0) cell.ShowSide(2, true);
+                            else if (x == grid.GetLength(0) - 1) cell.ShowSide(1, true);
+                            if (z == 0) cell.ShowSide(3, true);
+                            else if (z == grid.GetLength(2) - 1) cell.ShowSide(4, true);
                         }
                         else
                         {
                             temp = Object.Instantiate(Resources.Load<GameObject>("Cells/Stone"), cellHolder.transform); //On game start, set all possible slots to plain stone.
-                            grid[x, y, z] = temp.GetComponent<Cell>();
+                            Cell cell = temp.GetComponent<Cell>();
+                            grid[x, y, z] = cell;
                             temp.transform.position = new Vector3(x, y, z);
                             temp.layer = 8; //set to be invisible and non interactive
+                            for (int i = 0; i < temp.transform.childCount; i++) temp.transform.GetChild(i).gameObject.layer = 8;
+                            cell.ShowSide(0, true);
                         }
                     }
                 }
