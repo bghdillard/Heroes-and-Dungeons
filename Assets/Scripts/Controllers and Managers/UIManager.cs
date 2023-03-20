@@ -13,6 +13,17 @@ public class UIManager : MonoBehaviour
     public Slider goldSlider;
     public Slider oreSlider;
 
+    public TextMeshProUGUI nameText;
+    public GameObject monsterPanel;
+    public Slider currHealthBar;
+    public Slider maxHealthBar;
+    public Slider currStaminaBar;
+    public Slider maxStaminaBar;
+    public Slider currMagicBar;
+    public Slider maxMagicBar;
+    public Slider currLoyaltyBar;
+    public Slider maxLoyaltyBar;
+
     public void UpdateGoldText(int toIncrease)
     {
         goldSlider.value += toIncrease;

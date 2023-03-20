@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
+using UnityEngine.EventSystems;
 
 public class PlayerControls : MonoBehaviour
 {
@@ -8,17 +10,25 @@ public class PlayerControls : MonoBehaviour
     [SerializeField]
     private GameObject buildUI;
     [SerializeField]
+    private GameObject recruitUI;
+    [SerializeField]
     private BuilderController builderController;
     [SerializeField]
     new private Camera camera;
 
+    [SerializeField]
+    private string faction;
     private List<string> toBuild;
+    private string toRecruit;
 
     private bool buildMode;
+    private bool recruitMode;
+
     private static int activeLayer;
     private static Cell[,,] grid;
     private HashSet<Cell> selectedCells;
     private Dictionary<Cell, GameObject> previewItems;
+    private List<Monster> selectedMonsters;
 
     [SerializeField]
     private RectTransform selectionBox;
@@ -37,6 +47,7 @@ public class PlayerControls : MonoBehaviour
         buildMode = false;
         selectedCells = new HashSet<Cell>();
         previewItems = new Dictionary<Cell, GameObject>();
+        selectedMonsters = new List<Monster>();
         dragSelectStarted = false;
         orderCancelMode = false;
         itemRotation = 0;
@@ -83,6 +94,8 @@ public class PlayerControls : MonoBehaviour
         }
         */
         if (buildMode) HandleBuildInput();
+        if (recruitMode) HandleRecruitInput();
+        if (!buildMode && !recruitMode) ResizeSelectionBox();
 
     }
 
@@ -99,28 +112,29 @@ public class PlayerControls : MonoBehaviour
                 orderCancelMode = false;
             }
         }
-        else if (Input.GetMouseButtonDown(0) && !buildUI.activeSelf)
+        else if (Input.GetMouseButtonDown(0) && !EventSystem.current.IsPointerOverGameObject() && !buildUI.activeSelf)
         {
             //selectionBox.sizeDelta = Vector2.zero;
             //selectionBox.gameObject.SetActive(true);
             //mouseStartPosition = Input.mousePosition;
             RaycastHit hit;
             LayerMask mask = LayerMask.GetMask("Active Layer");
-            if (Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out hit, 300, mask) && hit.collider.GetComponent<Cell>() != null)
+            if (Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out hit, 300, mask) && hit.collider.GetComponentInParent<Cell>() != null)
             {
                 mouseStartPosition = hit.point;
                 Debug.Log(hit.point);
                 Debug.Log(mouseStartPosition);
                 dragSelectStarted = true;
-                if (hit.collider.GetComponent<Cell>().GetOrder() != null) orderCancelMode = true;
+                if (hit.collider.GetComponentInParent<Cell>().GetOrder() != null) orderCancelMode = true;
             }
         }
-        else if (Input.GetMouseButton(0) && dragSelectStarted && !buildUI.activeSelf) ResizeSelectionBox();
+        else if (Input.GetMouseButton(0) && dragSelectStarted && !buildUI.activeSelf) ResizeCellBox();
         else if (Input.GetMouseButtonUp(0) && dragSelectStarted && !buildUI.activeSelf)
         {
             //selectionBox.sizeDelta = Vector2.zero;
             //selectionBox.gameObject.SetActive(false);
             //Generate all the orders;
+            HashSet<IOrder> orders = new HashSet<IOrder>();
             foreach (Cell cell in selectedCells)
             {
                 if (toBuild[1] == "Cell")
@@ -132,7 +146,8 @@ public class PlayerControls : MonoBehaviour
                     }
                     else
                     {
-                        builderController.CancelOrder(cell.GetOrder());
+                        orders.Add(cell.GetOrder());
+                        //builderController.CancelOrder(cell.GetOrder());
                         cell.ResetColor();
                     }
                 }
@@ -144,14 +159,35 @@ public class PlayerControls : MonoBehaviour
                     }
                     else
                     {
-                        builderController.CancelOrder(new ItemOrder(cell, toBuild[0], itemRotation));
+                        orders.Add(new ItemOrder(cell, toBuild[0], itemRotation));
+                        //builderController.CancelOrder(new ItemOrder(cell, toBuild[0], itemRotation));
                     }
                 }
             }
+            if (orders.Count != 0) builderController.CancelOrder(orders);
             selectedCells.Clear();
             orderCancelMode = false;
         }
+    }
 
+    private void HandleRecruitInput()
+    {
+        if (Input.GetMouseButtonDown(0) && !EventSystem.current.IsPointerOverGameObject())
+        {
+            RaycastHit hit;
+            if (toRecruit != null && Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out hit)
+                && (hit.collider.GetComponentInParent<Cell>() != null && hit.collider.GetComponentInParent<Cell>().TraitsContains("Traversable") || hit.collider.GetComponent<Ground>() != null))
+            {
+                GameObject recruit = Instantiate(Resources.Load<GameObject>("Monster/" + faction + "/" + toRecruit)); //, hit.point, new Quaternion());
+                recruit.GetComponent<NavMeshAgent>().Warp(hit.point);
+                DungeonStats.AddMonster(recruit.GetComponent<Monster>());
+            }
+        }
+    }
+
+    public void UpdateToRecruitName(string toUpdate)
+    {
+        toRecruit = toUpdate;
     }
 
     public void UpdateToBuildName(string toUpdate)
@@ -159,13 +195,14 @@ public class PlayerControls : MonoBehaviour
         toBuild[0] = toUpdate;
         Debug.Log("NameChanged");
     }
+
     public void UpdateToBuildType(string toUpdate)
     {
         toBuild[1] = toUpdate;
         Debug.Log("TypeChanged");
     }
 
-    public static void SetInfo(Cell[ , , ] toSet, int layer)
+    public static void SetInfo(Cell[,,] toSet, int layer)
     {
         grid = toSet;
         activeLayer = layer;
@@ -173,20 +210,99 @@ public class PlayerControls : MonoBehaviour
 
     public void ToggleBuildMode()
     {
+        recruitMode = false;
+        recruitUI.SetActive(false);
         buildMode = !buildMode;
-        if (buildMode) buildUI.SetActive(true);
+        buildUI.SetActive(buildMode);
+    }
+
+    public void ToggleRecruitMode()
+    {
+        toRecruit = null;
+        buildMode = false;
+        buildUI.SetActive(false);
+        recruitMode = !recruitMode;
+        recruitUI.SetActive(recruitMode);
     }
 
     private void ResizeSelectionBox()
     {
-        /*
-        float width = Input.mousePosition.x - mouseStartPosition.x;
-        float height = Input.mousePosition.y - mouseStartPosition.y;
+        if (Input.GetMouseButtonDown(0) && !EventSystem.current.IsPointerOverGameObject())
+        {
+            selectionBox.sizeDelta = Vector2.zero;
+            selectionBox.gameObject.SetActive(true);
+            mouseStartPosition = Input.mousePosition;
+            mouseTime = Time.time;
+        }
+        else if (Input.GetMouseButton(0) && mouseTime + mouseDelay < Time.time)
+        {
 
-        selectionBox.anchoredPosition = mouseStartPosition + new Vector2(width / 2, height / 2); //remember that this exists when you want to do something similar to select units
-        selectionBox.sizeDelta = new Vector2(Mathf.Abs(width), Mathf.Abs(height));
-        Bounds bounds = new Bounds(selectionBox.anchoredPosition, selectionBox.sizeDelta);
-        
+            float width = Input.mousePosition.x - mouseStartPosition.x;
+            float height = Input.mousePosition.y - mouseStartPosition.y;
+
+            selectionBox.anchoredPosition = (Vector2)mouseStartPosition + new Vector2(width / 2, height / 2); //remember that this exists when you want to do something similar to select units. Hey past me, I remember!
+            selectionBox.sizeDelta = new Vector2(Mathf.Abs(width), Mathf.Abs(height));
+            Bounds bounds = new Bounds(selectionBox.anchoredPosition, selectionBox.sizeDelta);
+            List<Monster> temp = DungeonStats.GetMonsters();
+            List<Monster> currSelected = new List<Monster>();
+            foreach(Monster monster in temp)
+            {
+                Debug.Log("Checking for Monster Position");
+                if (MonsterIsSelected(camera.WorldToScreenPoint(monster.transform.position), bounds)) currSelected.Add(monster); //Add all monsters in the bounding box to a temporary list
+            }
+            foreach(Monster monster in selectedMonsters)
+            {
+                if (!currSelected.Contains(monster)) monster.Deselect(); //If a previously selected monster is no longer selected, remove its selection circle
+            }
+            selectedMonsters = currSelected;
+            foreach(Monster monster in selectedMonsters)
+            {
+                monster.PseudoSelect(); //Now tell all selected monsters to activate their selection circles
+            }
+        }
+        else if (Input.GetMouseButtonUp(0))
+        {
+            if (mouseTime + mouseDelay < Time.time) //if we are relesing the button after dragging the box, simply make the box disapear
+            {
+                selectionBox.sizeDelta = Vector2.zero;
+                selectionBox.gameObject.SetActive(false);
+            }
+            else if(!EventSystem.current.IsPointerOverGameObject())
+                //if we are only clicking instead of dragging we either select only the clicked monster,
+                //add it to the list of selected monsters if are holding shift, or remove all the selected monsters if we don't click on any
+            {
+                RaycastHit hit;
+                if (Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out hit) && hit.collider.GetComponent<Monster>() != null) 
+                {
+                    Monster monster = hit.collider.GetComponent<Monster>();
+                    monster.PseudoSelect();
+                    if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+                    {
+                        if(!selectedMonsters.Contains(monster)) selectedMonsters.Add(monster); //if we are holding shift when 
+                        else
+                        {
+                            monster.Deselect();
+                            selectedMonsters.Remove(monster);
+                        }
+                    }
+                    else
+                    {
+                        foreach (Monster oldMonster in selectedMonsters) oldMonster.Deselect();
+                        selectedMonsters = new List<Monster>()
+                        {
+                        monster
+                        };
+                    }
+                }
+                else
+                {
+                    foreach (Monster oldMonster in selectedMonsters) oldMonster.Deselect();
+                    selectedMonsters = new List<Monster>();
+                }
+            }
+            if (selectedMonsters.Count == 1) selectedMonsters[0].Select();
+        }
+        /*
         for(int i = 0; i < grid.GetLength(0); i++)
         {
             for(int x = 0; x < grid.GetLength(2); x++)
@@ -223,7 +339,9 @@ public class PlayerControls : MonoBehaviour
             }
         }
         */
-
+    }
+    private void ResizeCellBox()
+    {
         RaycastHit hit;
         LayerMask mask = LayerMask.GetMask("Active Layer");
         if (Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out hit, 300, mask))
@@ -236,12 +354,12 @@ public class PlayerControls : MonoBehaviour
             if (z < 0) z = 0;
             else if (z > 99) z = 99;
             HashSet<Cell> temp = new HashSet<Cell>();
-            for(int i = Mathf.Min(x, Mathf.RoundToInt(mouseStartPosition.x)); i < Mathf.Max(x, Mathf.RoundToInt(mouseStartPosition.x)) + 1; i++)
+            for (int i = Mathf.Min(x, Mathf.RoundToInt(mouseStartPosition.x)); i < Mathf.Max(x, Mathf.RoundToInt(mouseStartPosition.x)) + 1; i++)
             {
                 for (int y = Mathf.Min(z, Mathf.RoundToInt(mouseStartPosition.z)); y < Mathf.Max(z, Mathf.RoundToInt(mouseStartPosition.z)) + 1; y++) temp.Add(grid[i, activeLayer, y]); //add every cell within the between the mouse start and the current mouse position to a temporary set
             }
             HashSet<Cell> toRemove = new HashSet<Cell>();
-            foreach(Cell cell in selectedCells)
+            foreach (Cell cell in selectedCells)
             {
                 if (!temp.Contains(cell)) toRemove.Add(cell); //create a set for cells that were previously selected but no longer are
             }
@@ -270,7 +388,7 @@ public class PlayerControls : MonoBehaviour
                     }
                 }
             }
-            else if(toBuild[1] == "Item") //if building an item, check if the room type can hold the item type, then place a preview of the item in the room, while removing the previews from cells that have been deselcted
+            else if (toBuild[1] == "Item") //if building an item, check if the room type can hold the item type, then place a preview of the item in the room, while removing the previews from cells that have been deselcted
             {
                 if (toRemove.Count != 0)
                 {
@@ -283,7 +401,8 @@ public class PlayerControls : MonoBehaviour
                 }
                 foreach (Cell cell in temp)
                 {
-                    if(cell.TraitsContains(Resources.Load<Container>("Items/" + toBuild[0]).type)){ //confirm the cell can hold the type of item
+                    if (cell.TraitsContains(Resources.Load<Item>("Items/" + toBuild[0]).itemType))
+                    { //confirm the cell can hold the type of item
                         if (!orderCancelMode)
                         {
                             if (selectedCells.Add(cell)) //if a cell is newly added, create a preview of the item and add it to the dictionary
@@ -321,14 +440,12 @@ public class PlayerControls : MonoBehaviour
                 }
             }
         }
-
     }
-
-    /*
-    private bool CellIsSelected(Vector2 position, Bounds bounds)
+    
+    private bool MonsterIsSelected(Vector2 position, Bounds bounds)
     {
-        //Debug.Log("Cell position: " + position  +"\n Bounds position: " + bounds);
+        //Debug.Log("Monster position: " + position  +"\n Bounds position: " + bounds);
         return position.x > bounds.min.x && position.x < bounds.max.x && position.y > bounds.min.y && position.y < bounds.max.y;
     }
-    */
+    
 }

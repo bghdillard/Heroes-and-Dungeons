@@ -135,8 +135,27 @@ public class BuilderController : MonoBehaviour
         return highPriorityQueue.Contains(toCheck) || lowPriorityQueue.Contains(toCheck) || activeOrders.Contains(toCheck);
     }
 
-    public void CancelOrder(IOrder toCancel)
+    public void CancelOrder(HashSet<IOrder> toCancel)
     {
+        Queue<IOrder> temp = new Queue<IOrder>();
+        IOrder order;
+        while (highPriorityQueue.TryDequeue(out order)) if (!toCancel.Contains(order)) temp.Enqueue(order); //check the high priority queue for the orders and remove them if found
+        highPriorityQueue = temp;
+        while (lowPriorityQueue.TryDequeue(out order)) if (!toCancel.Contains(order)) temp.Enqueue(order); // check the low priority queue for the orders and remove them if found
+        lowPriorityQueue = temp;
+        List<IOrder> toRemove = new List<IOrder>();
+        foreach (IOrder toCheck in activeOrders) //check the active orders for the orders and remove them if found
+        {
+            if (toCancel.Contains(toCheck))
+            {
+                toRemove.Add(toCheck);
+                builderOrders[toCheck].CancelOrder();
+                builderOrders.Remove(toCheck);
+            }
+        }
+        if (toRemove.Count != 0) foreach (IOrder toCheck in toRemove) activeOrders.Remove(toCheck);
+        foreach (IOrder toCheck in toCancel) toCheck.CancelOrder(); //finalize canceling the orders
+        /*
         if (highPriorityQueue.Contains(toCancel)) //If the queue contains the order, remove the order from the queue
         {
             Debug.Log("Order in high Queue");
@@ -170,6 +189,7 @@ public class BuilderController : MonoBehaviour
         }
         else Debug.LogWarning("Canceled Order not found"); //If none of those contain the order, we have a problem
         toCancel.CancelOrder();
+        */
     }
 
     public void AddToHighQueue(IOrder toAdd)

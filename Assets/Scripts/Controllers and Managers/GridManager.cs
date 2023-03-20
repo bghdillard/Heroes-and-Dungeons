@@ -17,8 +17,10 @@ public class GridManager : MonoBehaviour
     private static Queue<Order> lowPriorityQueue;
     private static List<Order> activeOrders;
     */
-    private static Dictionary<string, int> dungeonStats;
+    //private static Dictionary<string, int> dungeonStats;
     private static Dictionary<string, List<Container>> containers;
+    private static Dictionary<string, List<Restorative>> restoratives;
+    private static List<Room> rooms;
     //private static List<NavMeshBuildSource> sources;
 
     public float xOffset;
@@ -34,7 +36,6 @@ public class GridManager : MonoBehaviour
         highPriorityQueue = new Queue<Order>();
         lowPriorityQueue = new Queue<Order>();
         activeOrders = new List<Order>();
-        */
         dungeonStats = new Dictionary<string, int>() //Cells will add and subtract to here to keep track of important stats
         {
             {"Prestige", 0}, // Prestige will affect progression, higher prestige comes from higher quality cell types and minions, and, in turn, will attract higher quality heroes
@@ -43,16 +44,26 @@ public class GridManager : MonoBehaviour
             {"Ore", 0}, // Some Items will increase the amount of special ores that can be held for the use of crafting
             {"Weapons", 0 } // Special weapons will need to be stored in specific armory items
         };
+        */
         containers = new Dictionary<string, List<Container>>() //Containers will be added to here to keep track of their locations for the builders
         {
             {"Gold", new List<Container>()},
             {"Ore", new List<Container>()},
             {"Weapons", new List<Container>()}
         };
-        Instantiate(Resources.Load<GameObject>("Special/Ground"), worldGeography.transform).layer = 6;
+        restoratives = new Dictionary<string, List<Restorative>>() //Restorative items will be added here to keep track of their locations for the monsters that need them
+        {
+            {"Health", new List<Restorative>()},
+            {"Stamina", new List<Restorative>()},
+            {"Magic", new List<Restorative>()}
+        };
+        rooms = new List<Room>();
         activeLayer = 3;
         grid = new Cell[100, 4, 100];
-        StartCoroutine(DungeonBuilder.BuildGrid(grid, activeLayer, worldGeography,cellHolder, xOffset, yOffset, seed));
+        GameObject ground = Instantiate(Resources.Load<GameObject>("Special/Ground"), worldGeography.transform);
+        ground.layer = 6;
+        ground.AddComponent<Ground>();
+        StartCoroutine(DungeonBuilder.BuildGrid(grid, activeLayer, worldGeography, cellHolder, xOffset, yOffset, seed));
         PlayerControls.SetInfo(grid, activeLayer);
     }
 
@@ -85,39 +96,180 @@ public class GridManager : MonoBehaviour
         return false;
     }
 
+    public static List<Cell> GetAdjacent(Vector3 center) //return a list containing the four adjacent cells
+    {
+        List<Cell> toReturn = new List<Cell>();
+        int x = (int)center.x;
+        int y = (int)center.y;
+        int z = (int)center.z;
+        if (x - 1 >= 0) toReturn.Add(grid[x - 1, y, z]);
+        if (x + 1 <= 99) toReturn.Add(grid[x + 1, y, z]);
+        if (z - 1 >= 0) toReturn.Add(grid[x, y, z - 1]);
+        if (z + 1 <= 99) toReturn.Add(grid[x, y, z + 1]);
+        return toReturn;
+    }
+
     public static void UpdateGrid(Cell toUpdate, string toFetch) //Changes the cell in toUpdate with the one stored in toFetch
     {
         Vector3 location = toUpdate.GetLocation();
         int x =  (int)location.x;
         int y = (int) location.y;
         int z = (int) location.z;
-        GameObject temp = Instantiate(Resources.Load<GameObject>("Cells/" + toFetch), cellHolder.transform);
-        grid[x, y, z] = temp.GetComponent<Cell>();
+        GameObject temp = Instantiate(Resources.Load<GameObject>("Cells/" + toFetch));//, cellHolder.transform);
+        Cell cell = temp.GetComponent<Cell>();
+        grid[x, y, z] = cell;
         temp.transform.position = location;
         if (y == activeLayer)
         {
             Debug.Log("Built on ActiveLayer");
             temp.layer = 6;
-            if (temp.GetComponent<Cell>().TraitsContains("Transparent") && !temp.GetComponent<Cell>().TraitsContains("Traversable")) grid[x, y-1, z].gameObject.layer = 7;
+            if (cell.TraitsContains("Transparent") && !cell.TraitsContains("Traversable")) grid[x, y-1, z].gameObject.layer = 7;
         }
         else if (y == activeLayer - 1 && grid[x, y + 1, z].TraitsContains("Transparent")) temp.layer = 7;
         else temp.layer = 8;
-        if (toUpdate.GetResourceType() != "None") Instantiate(Resources.Load<GameObject>("Minerals/" + toUpdate.GetResourceType())).transform.position = toUpdate.transform.position;
+        if (cell.TraitsContains("Transparent")) //set the visibilty of this and adjacent cells walls depending on if they'll be visible to the camera;
+        {
+            Cell adjacent;
+            if (x != 99)
+            {
+                adjacent = grid[x + 1, y, z];
+                if (adjacent.TraitsContains("Transparent"))
+                {
+                    cell.ShowSide(1, false);
+                    adjacent.ShowSide(2, false);
+                }
+                else
+                {
+                    cell.ShowSide(1, true);
+                    adjacent.ShowSide(2, true); //I still need to more concretely decide what happens where transparent and opaque cells meet;
+                }
+            }
+
+            if (x != 0)
+            {
+                adjacent = grid[x - 1, y, z];
+                if (adjacent.TraitsContains("Transparent"))
+                {
+                    cell.ShowSide(2, false);
+                    adjacent.ShowSide(1, false);
+                }
+                else
+                {
+                    cell.ShowSide(2, true);
+                    adjacent.ShowSide(1, true);
+                }
+            }
+
+            if (z != 99)
+            {
+                adjacent = grid[x, y, z + 1];
+                if (adjacent.TraitsContains("Transparent"))
+                {
+                    cell.ShowSide(4, false);
+                    adjacent.ShowSide(3, false);
+                }
+                else
+                {
+                    cell.ShowSide(4, true);
+                    adjacent.ShowSide(3, true);
+                }
+            }
+
+            if (z != 0)
+            {
+                adjacent = grid[x, y, z - 1];
+                if (adjacent.TraitsContains("Transparent"))
+                {
+                    cell.ShowSide(3, false);
+                    adjacent.ShowSide(4, false);
+                }
+                else
+                {
+                    cell.ShowSide(3, true);
+                    adjacent.ShowSide(4, true);
+                }
+            }
+        }
+        else
+        {
+            Cell adjacent;
+            if (x != 99)
+            {
+                adjacent = grid[x + 1, y, z];
+                if (adjacent.TraitsContains("Transparent"))
+                {
+                    cell.ShowSide(1, true);
+                    adjacent.ShowSide(2, true);
+                }
+                else
+                {
+                    cell.ShowSide(1, false);
+                    adjacent.ShowSide(2, false); //I still need to more concretely decide what happens where transparent and opaque cells meet;
+                }
+            }
+
+            if (x != 0)
+            {
+                adjacent = grid[x - 1, y, z];
+                if (adjacent.TraitsContains("Transparent"))
+                {
+                    cell.ShowSide(2, true);
+                    adjacent.ShowSide(1, true);
+                }
+                else
+                {
+                    cell.ShowSide(2, false);
+                    adjacent.ShowSide(1, false);
+                }
+            }
+
+            if (z != 99)
+            {
+                adjacent = grid[x, y, z + 1];
+                if (adjacent.TraitsContains("Transparent"))
+                {
+                    cell.ShowSide(2, true);
+                    adjacent.ShowSide(1, true);
+                }
+                else
+                {
+                    cell.ShowSide(2, false);
+                    adjacent.ShowSide(1, false);
+                }
+            }
+
+            if (z != 0)
+            {
+                adjacent = grid[x, y, z - 1];
+                if (adjacent.TraitsContains("Transparent"))
+                {
+                    cell.ShowSide(2, true);
+                    adjacent.ShowSide(1, true);
+                }
+                else
+                {
+                    cell.ShowSide(2, false);
+                    adjacent.ShowSide(1, false);
+                }
+            }
+        }
+
+        if (toUpdate.GetResourceType() != "None")
+            Instantiate(Resources.Load<GameObject>("Minerals/" + toUpdate.GetResourceType())).transform.position = toUpdate.transform.position;
         Destroy(toUpdate.gameObject);
         //Debug.Log(worldGeography.GetComponent<NavMeshSurface>().collectObjects);
-        if (temp.GetComponent<Cell>().TraitsContains("Traversable"))
-        {
-            GameObject floor = Instantiate(Resources.Load<GameObject>("Special/Floor"), worldGeography.transform);
-            floor.transform.position = new Vector3(x, y - 0.5f, z);
-        }
+        if (cell.TraitsContains("Traversable")) temp.transform.parent = worldGeography.transform;
+        else temp.transform.parent = cellHolder.transform;
         //updateMesh = true;
+        
         worldGeography.GetComponent<NavMeshSurface>().UpdateNavMesh(worldGeography.GetComponent<NavMeshSurface>().navMeshData); // I want to come back here to see if I can find a more cost-effective way of doing this. I would love to see if there was a way to just add a single 1x1 cube to the existing mesh
+        cell.CheckRoomStatus();
     }
     
-    private static void UpdateResources(Container updateFrom)
+    public static void UpdateResources(Container updateFrom)
     {
-        dungeonStats[updateFrom.type] += updateFrom.maxAmount;
-        containers[updateFrom.type].Add(updateFrom);
+        DungeonStats.UpdateStat(updateFrom.itemType, updateFrom.maxAmount);
+        containers[updateFrom.itemType].Add(updateFrom);
     }
 
     public static Container GetClosestValidContainer(Resource toTransit, string type)
@@ -200,9 +352,12 @@ public class GridManager : MonoBehaviour
             temp.transform.localPosition = new Vector3(0.5f - (temp.transform.localScale.x / 2), -0.5f + (temp.transform.localScale.y / 2), 0);
         }
 
-        Container toAdd = temp.GetComponent<Container>();
-        if (toAdd != null) UpdateResources(toAdd); //If the item being added is a container, add it's stat changes to the dungeon
+        //Container toAdd = temp.GetComponent<Container>();
+        //if (toAdd != null) UpdateResources(toAdd); //If the item being added is a container, add it's stat changes to the dungeon. This'll now be done in Containers awake.
         temp.layer = toUpdate.gameObject.layer; //because the item is inside a cell, it should have the same layer
+        /*Vector3 toModify = temp.transform.position;
+        toModify.y += temp.transform.localScale.y / 2; 
+        temp.transform.position = toModify;*/
         
         /* notes for rotaion:
          * 0 = 0x, 0z
@@ -210,6 +365,40 @@ public class GridManager : MonoBehaviour
          * 180 = 0x, 0z
          * 270 = 1x, 1z
          */
+    }
+
+    public static void AddRoom(Room toAdd)
+    {
+        rooms.Add(toAdd);
+    }
+
+    public static void RemoveRoom(Room toRemove)
+    {
+        rooms.Remove(toRemove);
+    }
+
+    public static List<Room> GetRooms()
+    {
+        return rooms;
+    }
+
+    public static void AddRestorative(Restorative toAdd, string type)
+    {
+        Debug.Log("Restorative of type: " + type + " added");
+        restoratives[type].Add(toAdd);
+        Debug.Log("There are now " + restoratives[type].Count + " restoratives of this type");
+    }
+
+    public static void RemoveRestorative(Restorative toRemove, string type)
+    {
+        Debug.Log("Removing a restorative of type " + type);
+        restoratives[type].Remove(toRemove);
+    }
+
+    public static List<Restorative> GetRestoratives(string type)
+    {
+        Debug.Log("There are currently " + restoratives[type].Count + " restoratives of type " + type);
+        return restoratives[type];
     }
 
     public static Cell GetCellAt(int x, int y, int z)
