@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 3053793692771231691}
   - component: {fileID: -5192034322300158024}
-  - component: {fileID: -1789809646109351846}
   m_Layer: 0
   m_Name: GuardRoom
   m_TagString: Untagged
@@ -56,49 +55,8 @@ MonoBehaviour:
   - {r: 0.5176471, g: 0, b: 0, a: 0.47058824}
   - {r: 0.7607843, g: 0.7647059, b: 0.101960786, a: 0.47058824}
   - {r: 0.21960784, g: 0.5647059, b: 0.08235294, a: 0.47058824}
-  renderers: []
---- !u!23 &-1789809646109351846
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 638663921660015886}
-  m_Enabled: 1
-  m_CastShadows: 1
-  m_ReceiveShadows: 1
-  m_DynamicOccludee: 1
-  m_StaticShadowCaster: 0
-  m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 2
-  m_RayTraceProcedural: 0
-  m_RenderingLayerMask: 1
-  m_RendererPriority: 0
-  m_Materials:
-  - {fileID: 0}
-  m_StaticBatchInfo:
-    firstSubMesh: 0
-    subMeshCount: 0
-  m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 0}
-  m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 3
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: 0.5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
+  renderers:
+  - {fileID: 6759902443599970209}
 --- !u!1001 &4386434191618402737
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -161,5 +119,10 @@ PrefabInstance:
 --- !u!4 &2595209659929888376 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1791227344950816713, guid: e891e24bcad30bf42b8f88ea7463cf17, type: 3}
+  m_PrefabInstance: {fileID: 4386434191618402737}
+  m_PrefabAsset: {fileID: 0}
+--- !u!23 &6759902443599970209 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 6994162638030165520, guid: e891e24bcad30bf42b8f88ea7463cf17, type: 3}
   m_PrefabInstance: {fileID: 4386434191618402737}
   m_PrefabAsset: {fileID: 0}

@@ -67,6 +67,11 @@ public class CellOrder : IOrder
         return target;
     }
 
+    public override string ToString()
+    {
+        return time.ToString();
+    }
+
     public override bool Equals(object obj)
     {
         //Debug.Log("CellOrder Equals Called");

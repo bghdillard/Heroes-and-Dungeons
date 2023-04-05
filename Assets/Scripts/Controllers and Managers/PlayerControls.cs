@@ -141,7 +141,42 @@ public class PlayerControls : MonoBehaviour
                 {
                     if (!orderCancelMode)
                     {
-                        builderController.AddToHighQueue(new CellOrder(cell, toBuild[0]));
+                        List<Cell> adjacent = GridManager.GetAdjacent(cell);
+                        if (adjacent[0] == null || adjacent[0].TraitsContains("Traversable"))
+                        {
+                            Debug.Log("Adding to high priority queue from PlayerControls");
+                            builderController.AddToHighQueue(new CellOrder(cell, toBuild[0]));
+                            continue;
+                        }
+                        if (adjacent[1] != null)
+                        {
+                            if (adjacent[1].TraitsContains("Traversable"))
+                            {
+                                Debug.Log("Adding to high priority queue from PlayerControls");
+                                builderController.AddToHighQueue(new CellOrder(cell, toBuild[0]));
+                                continue;
+                            }
+                        }
+                        if (adjacent[2] != null)
+                        {
+                            if (adjacent[2].TraitsContains("Traversable"))
+                            {
+                                Debug.Log("Adding to high priority queue from PlayerControls");
+                                builderController.AddToHighQueue(new CellOrder(cell, toBuild[0]));
+                                continue;
+                            }
+                        }
+                        if (adjacent[3] != null)
+                        {
+                            if (adjacent[3].TraitsContains("Traversable"))
+                            {
+                                Debug.Log("Adding to high priority queue from PlayerControls");
+                                builderController.AddToHighQueue(new CellOrder(cell, toBuild[0]));
+                                continue;
+                            }
+                        }
+                        builderController.AddToInterim(new CellOrder(cell, toBuild[0]));
+                        //builderController.AddToHighQueue(new CellOrder(cell, toBuild[0]));
                         //cell.ResetColor();
                     }
                     else

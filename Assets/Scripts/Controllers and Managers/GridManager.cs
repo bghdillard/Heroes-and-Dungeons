@@ -98,15 +98,20 @@ public class GridManager : MonoBehaviour
 
     public static List<Cell> GetAdjacent(Vector3 center) //return a list containing the four adjacent cells
     {
-        List<Cell> toReturn = new List<Cell>();
         int x = (int)center.x;
         int y = (int)center.y;
         int z = (int)center.z;
-        if (x - 1 >= 0) toReturn.Add(grid[x - 1, y, z]);
-        if (x + 1 <= 99) toReturn.Add(grid[x + 1, y, z]);
-        if (z - 1 >= 0) toReturn.Add(grid[x, y, z - 1]);
-        if (z + 1 <= 99) toReturn.Add(grid[x, y, z + 1]);
-        return toReturn;
+        return new List<Cell>()
+        {
+            GetCellAt(x-1, y, z),
+            GetCellAt(x+1, y, z),
+            GetCellAt(x, y, z-1),
+            GetCellAt(x, y, z+1),
+        };
+    }
+    public static List<Cell> GetAdjacent(Cell center)
+    {
+        return GetAdjacent(center.GetLocation());
     }
 
     public static void UpdateGrid(Cell toUpdate, string toFetch) //Changes the cell in toUpdate with the one stored in toFetch
@@ -122,6 +127,10 @@ public class GridManager : MonoBehaviour
         if (y == activeLayer)
         {
             Debug.Log("Built on ActiveLayer");
+            foreach(Transform transform in temp.transform)
+            {
+                transform.gameObject.layer = 6;
+            }
             temp.layer = 6;
             if (cell.TraitsContains("Transparent") && !cell.TraitsContains("Traversable")) grid[x, y-1, z].gameObject.layer = 7;
         }
@@ -403,6 +412,7 @@ public class GridManager : MonoBehaviour
 
     public static Cell GetCellAt(int x, int y, int z)
     {
+        if(x > 99 || x < 00 || z > 99 || z < 0) return null;
         return grid[x,y,z];
     }
 }

@@ -34,7 +34,10 @@ public class Cell : MonoBehaviour
         List<Room> adjacentRooms = new List<Room>();
         foreach (Cell cell in adjacentCells)
         {
-            if (cell.GetName() == cellName && !adjacentRooms.Contains(cell.GetRoom())) adjacentRooms.Add(cell.GetRoom());
+            if (cell != null)
+            {
+                if (cell.GetName() == cellName && !adjacentRooms.Contains(cell.GetRoom())) adjacentRooms.Add(cell.GetRoom());
+            }
         }
         Debug.Log("This cell is adjacent to " + adjacentRooms.Count + " rooms.");
         if (adjacentRooms.Count == 0) room = new Room(this);

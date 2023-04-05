@@ -8,6 +8,7 @@ public class BuilderController : MonoBehaviour
     private List<Builder> builders;
 
     private Queue<IOrder> highPriorityQueue;
+    private HashSet<IOrder> interimOrders;
     private Queue<IOrder> lowPriorityQueue;
     private List<IOrder> activeOrders;
     private Dictionary<IOrder, Builder> builderOrders;
@@ -17,6 +18,7 @@ public class BuilderController : MonoBehaviour
     {
         builders = new List<Builder>();
         highPriorityQueue = new Queue<IOrder>();
+        interimOrders = new HashSet<IOrder>();
         lowPriorityQueue = new Queue<IOrder>();
         activeOrders = new List<IOrder>();
         builderOrders = new Dictionary<IOrder, Builder>();
@@ -29,9 +31,8 @@ public class BuilderController : MonoBehaviour
     {
         if (!claimStutter)
         {
-            if (highPriorityQueue.TryDequeue(out IOrder toDo))
+            if (highPriorityQueue.TryPeek(out IOrder toDo))
             {
-                Debug.Log("Order removed from queue");
                 Builder closestBuilder = null;
                 NavMeshPath path = new NavMeshPath();
                 float closestDistance = float.MaxValue;
@@ -89,11 +90,11 @@ public class BuilderController : MonoBehaviour
                     closestBuilder.SetOrder(toDo, target);
                     activeOrders.Add(toDo);
                     builderOrders.Add(toDo, closestBuilder);
+                    highPriorityQueue.Dequeue();
                 }
                 else
                 {
-                    Debug.Log("Builder not Selecetd; returning Order");
-                    highPriorityQueue.Enqueue(toDo);
+                    Debug.Log("Builder not Seleceted; keeping Order");
                 }
             }
             else if (lowPriorityQueue.TryDequeue(out toDo))
@@ -132,17 +133,20 @@ public class BuilderController : MonoBehaviour
 
     public bool ContainsOrder(IOrder toCheck)
     {
-        return highPriorityQueue.Contains(toCheck) || lowPriorityQueue.Contains(toCheck) || activeOrders.Contains(toCheck);
+        return highPriorityQueue.Contains(toCheck) || interimOrders.Contains(toCheck) || lowPriorityQueue.Contains(toCheck) || activeOrders.Contains(toCheck);
     }
 
     public void CancelOrder(HashSet<IOrder> toCancel)
     {
-        Queue<IOrder> temp = new Queue<IOrder>();
+        Debug.Log("CancelOrder called");
+        Queue<IOrder> highPriorityTemp = new Queue<IOrder>();
         IOrder order;
-        while (highPriorityQueue.TryDequeue(out order)) if (!toCancel.Contains(order)) temp.Enqueue(order); //check the high priority queue for the orders and remove them if found
-        highPriorityQueue = temp;
-        while (lowPriorityQueue.TryDequeue(out order)) if (!toCancel.Contains(order)) temp.Enqueue(order); // check the low priority queue for the orders and remove them if found
-        lowPriorityQueue = temp;
+        while (highPriorityQueue.TryDequeue(out order)) if (!toCancel.Contains(order)) highPriorityTemp.Enqueue(order); //check the high priority queue for the orders and remove them if found
+        highPriorityQueue = highPriorityTemp;
+        Debug.Log("After cancelling, high priority size is: " + highPriorityQueue.Count);
+        Queue<IOrder> lowPriorityTemp = new Queue<IOrder>();
+        while (lowPriorityQueue.TryDequeue(out order)) if (!toCancel.Contains(order)) lowPriorityTemp.Enqueue(order); // check the low priority queue for the orders and remove them if found
+        lowPriorityQueue = lowPriorityTemp;
         List<IOrder> toRemove = new List<IOrder>();
         foreach (IOrder toCheck in activeOrders) //check the active orders for the orders and remove them if found
         {
@@ -154,46 +158,16 @@ public class BuilderController : MonoBehaviour
             }
         }
         if (toRemove.Count != 0) foreach (IOrder toCheck in toRemove) activeOrders.Remove(toCheck);
-        foreach (IOrder toCheck in toCancel) toCheck.CancelOrder(); //finalize canceling the orders
-        /*
-        if (highPriorityQueue.Contains(toCancel)) //If the queue contains the order, remove the order from the queue
+        foreach (IOrder toCheck in toCancel) //finalize canceling the orders and remove them from the interim orders
         {
-            Debug.Log("Order in high Queue");
-            Queue<IOrder> temp = new Queue<IOrder>();
-            Debug.Log("high queue size before removing: " + highPriorityQueue.Count);
-            foreach (IOrder order in highPriorityQueue)
-            {
-                if (order == toCancel) continue;
-                Debug.Log("Order not found here");
-                temp.Enqueue(order);
-            }
-            Debug.Log("temp queue size after removing: " + temp.Count);
-            highPriorityQueue = temp;
-            Debug.Log("high queue size after removing: " + highPriorityQueue.Count);
+            interimOrders.Remove(toCheck);
+            toCheck.CancelOrder(); 
         }
-        else if (lowPriorityQueue.Contains(toCancel))
-        {
-            Queue<IOrder> temp = new Queue<IOrder>();
-            foreach (IOrder order in lowPriorityQueue)
-            {
-                if (order == toCancel) continue;
-                temp.Enqueue(order);
-            }
-            lowPriorityQueue = temp;
-        }
-        else if (activeOrders.Contains(toCancel)) //If the list contains the order, remove the order from the list and stop the builder
-        {
-            activeOrders.Remove(toCancel);
-            builderOrders[toCancel].CancelOrder();
-            builderOrders.Remove(toCancel);
-        }
-        else Debug.LogWarning("Canceled Order not found"); //If none of those contain the order, we have a problem
-        toCancel.CancelOrder();
-        */
     }
 
     public void AddToHighQueue(IOrder toAdd)
     {
+        Debug.Log("AddToHighQueue called");
         highPriorityQueue.Enqueue(toAdd);
     }
 
@@ -202,21 +176,35 @@ public class BuilderController : MonoBehaviour
         lowPriorityQueue.Enqueue(toAdd);
     }
 
+    public void AddToInterim(IOrder toAdd)
+    {
+        interimOrders.Add(toAdd);
+    }
+
     public void RemoveOrder(IOrder toRemove)
     {
         activeOrders.Remove(toRemove);
         builderOrders.Remove(toRemove);
+        if(toRemove.GetOrderType() == "cellBuild") //if the finished order was a cell building order, check to see if adjacent cells have orders that should be added to the queue;
+        {
+            List<Cell> toCheck = GridManager.GetAdjacent(toRemove.GetLocation());
+            for(int i = 0; i < toCheck.Count; i++)
+            {
+                if (toCheck[i] == null) continue;
+                IOrder order = toCheck[i].GetOrder();
+                if(order != null) if (interimOrders.Remove(order)) highPriorityQueue.Enqueue(order); //if the adjacent cell has an order, and that order was in the interim orders list, add that order to the building queue;
+            }
+        }
     }
 
     public void ClaimOrder(IOrder toClaim, Builder claimer)
     {
-        Queue<IOrder> temp = new Queue<IOrder>();
-        foreach(IOrder order in highPriorityQueue)
-        {
-            if (order == toClaim) continue;
-            temp.Enqueue(order);
-        }
-        highPriorityQueue = temp;
+        Debug.Log("ClaimOrder called");
+        Queue<IOrder> highPriorityTemp = new Queue<IOrder>();
+        IOrder order;
+        while (highPriorityQueue.TryDequeue(out order)) if (order != toClaim) highPriorityTemp.Enqueue(order);
+        highPriorityQueue = highPriorityTemp;
+        Queue<IOrder> highInterimTemp = new Queue<IOrder>();
         builderOrders.Add(toClaim, claimer);
         activeOrders.Add(toClaim);
     }
