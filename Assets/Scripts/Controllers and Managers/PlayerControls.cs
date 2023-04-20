@@ -15,6 +15,12 @@ public class PlayerControls : MonoBehaviour
     private BuilderController builderController;
     [SerializeField]
     new private Camera camera;
+    [SerializeField]
+    private GameObject modeIndicator;
+    [SerializeField]
+    private GameObject patrolPointButton;
+    [SerializeField]
+    private AssignedPointPanel assignedPointPanel;
 
     [SerializeField]
     private string faction;
@@ -23,9 +29,11 @@ public class PlayerControls : MonoBehaviour
 
     private bool buildMode;
     private bool recruitMode;
+    private bool defenseMode;
+    private bool patrolMode;
 
     private static int activeLayer;
-    private static Cell[,,] grid;
+    //private static Cell[,,] grid;
     private HashSet<Cell> selectedCells;
     private Dictionary<Cell, GameObject> previewItems;
     private List<Monster> selectedMonsters;
@@ -40,16 +48,26 @@ public class PlayerControls : MonoBehaviour
     private bool orderCancelMode;
     private int itemRotation;
 
+    private Room activeRoom;
+    private Patrol activePatrol;
+
     // Start is called before the first frame update
     void Start()
     {
         toBuild = new List<string> { "Empty", "Cell" };
+
         buildMode = false;
+        recruitMode = false;
+        defenseMode = false;
+        patrolMode = false;
+
         selectedCells = new HashSet<Cell>();
         previewItems = new Dictionary<Cell, GameObject>();
         selectedMonsters = new List<Monster>();
+
         dragSelectStarted = false;
         orderCancelMode = false;
+
         itemRotation = 0;
     }
 
@@ -95,7 +113,8 @@ public class PlayerControls : MonoBehaviour
         */
         if (buildMode) HandleBuildInput();
         if (recruitMode) HandleRecruitInput();
-        if (!buildMode && !recruitMode) ResizeSelectionBox();
+        if (patrolMode) HandlePatrolInput();
+        if (!buildMode && !recruitMode && !patrolMode) HandleSelectInput();
 
     }
 
@@ -107,7 +126,15 @@ public class PlayerControls : MonoBehaviour
             if (dragSelectStarted)
             {
                 dragSelectStarted = false;
-                foreach (Cell cell in selectedCells) cell.ResetColor();
+                foreach (Cell cell in selectedCells)
+                {
+                    if(!orderCancelMode) cell.ResetColor();
+                    else
+                    {
+                        if (cell.GetOrder().GetStarted()) cell.SetColor(2);
+                        else cell.SetColor(1);
+                    }
+                }
                 selectedCells.Clear();
                 orderCancelMode = false;
             }
@@ -202,6 +229,7 @@ public class PlayerControls : MonoBehaviour
             if (orders.Count != 0) builderController.CancelOrder(orders);
             selectedCells.Clear();
             orderCancelMode = false;
+            dragSelectStarted = false;
         }
     }
 
@@ -215,8 +243,21 @@ public class PlayerControls : MonoBehaviour
             {
                 GameObject recruit = Instantiate(Resources.Load<GameObject>("Monster/" + faction + "/" + toRecruit)); //, hit.point, new Quaternion());
                 recruit.GetComponent<NavMeshAgent>().Warp(hit.point);
-                DungeonStats.AddMonster(recruit.GetComponent<Monster>());
+                Monster monster = recruit.GetComponent<Monster>();
+                DungeonStats.AddMonster(monster);
+                GameObject panel = Instantiate(Resources.Load<GameObject>("UI/MonsterPanel"));
+                assignedPointPanel.AddPanel(panel);
+                panel.GetComponent<AssignmentPanel>().Setup(monster);
             }
+        }
+    }
+
+    private void HandlePatrolInput()
+    {
+        throw new System.NotImplementedException();
+        if (Input.GetMouseButtonDown(0) && !EventSystem.current.IsPointerOverGameObject())
+        {
+            RaycastHit hit;
         }
     }
 
@@ -237,9 +278,9 @@ public class PlayerControls : MonoBehaviour
         Debug.Log("TypeChanged");
     }
 
-    public static void SetInfo(Cell[,,] toSet, int layer)
+    public static void SetInfo(int layer)
     {
-        grid = toSet;
+        //grid = toSet;
         activeLayer = layer;
     }
 
@@ -247,8 +288,26 @@ public class PlayerControls : MonoBehaviour
     {
         recruitMode = false;
         recruitUI.SetActive(false);
+        defenseMode = false;
+        GridManager.ToggleDefenseVisibility(false);
+        patrolPointButton.SetActive(false);
+        assignedPointPanel.gameObject.SetActive(false);
         buildMode = !buildMode;
         buildUI.SetActive(buildMode);
+        modeIndicator.SetActive(buildMode);
+    }
+
+    public void ToggleDefenseMode()
+    {
+        buildMode = false;
+        buildUI.SetActive(false);
+        recruitMode = false;
+        recruitUI.SetActive(false);
+        defenseMode = !defenseMode;
+        modeIndicator.SetActive(defenseMode);
+        patrolPointButton.SetActive(defenseMode);
+        GridManager.ToggleDefenseVisibility(defenseMode);
+        if (!defenseMode) assignedPointPanel.gameObject.SetActive(false);
     }
 
     public void ToggleRecruitMode()
@@ -256,12 +315,91 @@ public class PlayerControls : MonoBehaviour
         toRecruit = null;
         buildMode = false;
         buildUI.SetActive(false);
+        defenseMode = false;
+        GridManager.ToggleDefenseVisibility(false);
+        modeIndicator.SetActive(false);
+        patrolPointButton.SetActive(false);
+        assignedPointPanel.gameObject.SetActive(false);
         recruitMode = !recruitMode;
         recruitUI.SetActive(recruitMode);
     }
 
-    private void ResizeSelectionBox()
+    public void TogglePatrolMode()
     {
+        patrolMode = !patrolMode;
+    }
+
+    private void HandleSelectInput()
+    {
+        if (Input.GetMouseButtonUp(0) && !EventSystem.current.IsPointerOverGameObject())
+        {
+            RaycastHit hit;
+            if (Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out hit)) {
+                if (!defenseMode) //if we are selecting monsters
+                {
+                    if (Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out hit) && hit.collider.GetComponent<Monster>() != null)
+                    {
+                        Monster monster = hit.collider.GetComponent<Monster>();
+                        monster.PseudoSelect();
+                        foreach (Monster oldMonster in selectedMonsters) oldMonster.Deselect();
+                        selectedMonsters = new List<Monster>()
+                {
+                    monster
+                };
+                    }
+                    else
+                    {
+                        foreach (Monster oldMonster in selectedMonsters) oldMonster.Deselect();
+                        selectedMonsters = new List<Monster>();
+                    }
+                    if (selectedMonsters.Count == 1) selectedMonsters[0].Select();
+                }
+                else  //if we are selecting guardrooms and patrolpoints
+                {
+                    Cell cell = GridManager.GetCellAt(Mathf.RoundToInt(hit.point.x), activeLayer, Mathf.RoundToInt(hit.point.z));
+                    if (cell != null && cell.TraitsContains("Traversable")) 
+                    {
+                        Room room = cell.GetRoom();
+                        if (room.IsGuardRoom())
+                        {
+                            room.SetPanel(assignedPointPanel);
+                            if (activeRoom != null && room != activeRoom) activeRoom.Deselect();
+                            room.Select();
+                            activeRoom = room;
+                            Debug.Log("You clicked on a guard room while in defense mode");
+                        }
+                        else if (activeRoom != null)
+                        {
+                            activeRoom.Deselect();
+                            activeRoom = null;
+                            Debug.Log("You clicked off of a guard room");
+                        }
+                        else Debug.Log("You did not click on a guard room");
+                    }
+                    else if (hit.collider.GetComponent<PatrolPoint>() != null)
+                    {
+                        PatrolPoint point = hit.collider.GetComponent<PatrolPoint>();
+                        Debug.Log("You clicked on a patrol point while in defense mode");
+                    }
+                    else
+                    {
+                        if(activeRoom != null)
+                        {
+                            activeRoom.Deselect();
+                            activeRoom = null;
+                        }
+                        else if(activePatrol != null)
+                        {
+                            activePatrol = null;
+                            Debug.Log("Hey, you clicked off a selected point");
+                        }
+                        assignedPointPanel.Deactivate();
+                    }
+                }
+            }
+        }
+    }
+    /*
         if (Input.GetMouseButtonDown(0) && !EventSystem.current.IsPointerOverGameObject())
         {
             selectionBox.sizeDelta = Vector2.zero;
@@ -337,7 +475,6 @@ public class PlayerControls : MonoBehaviour
             }
             if (selectedMonsters.Count == 1) selectedMonsters[0].Select();
         }
-        /*
         for(int i = 0; i < grid.GetLength(0); i++)
         {
             for(int x = 0; x < grid.GetLength(2); x++)
@@ -373,8 +510,9 @@ public class PlayerControls : MonoBehaviour
                 }
             }
         }
-        */
     }
+    */
+
     private void ResizeCellBox()
     {
         RaycastHit hit;
@@ -391,7 +529,8 @@ public class PlayerControls : MonoBehaviour
             HashSet<Cell> temp = new HashSet<Cell>();
             for (int i = Mathf.Min(x, Mathf.RoundToInt(mouseStartPosition.x)); i < Mathf.Max(x, Mathf.RoundToInt(mouseStartPosition.x)) + 1; i++)
             {
-                for (int y = Mathf.Min(z, Mathf.RoundToInt(mouseStartPosition.z)); y < Mathf.Max(z, Mathf.RoundToInt(mouseStartPosition.z)) + 1; y++) temp.Add(grid[i, activeLayer, y]); //add every cell within the between the mouse start and the current mouse position to a temporary set
+                for (int y = Mathf.Min(z, Mathf.RoundToInt(mouseStartPosition.z)); y < Mathf.Max(z, Mathf.RoundToInt(mouseStartPosition.z)) + 1; y++)
+                    temp.Add(GridManager.GetCellAt(i, activeLayer, y)); //add every cell within the between the mouse start and the current mouse position to a temporary set
             }
             HashSet<Cell> toRemove = new HashSet<Cell>();
             foreach (Cell cell in selectedCells)
@@ -405,7 +544,9 @@ public class PlayerControls : MonoBehaviour
                     foreach (Cell cell in toRemove)
                     {
                         selectedCells.Remove(cell); //remove every no longer selected cell
-                        cell.ResetColor();
+                        if (!orderCancelMode) cell.ResetColor();
+                        else if (cell.GetOrder().GetStarted()) cell.SetColor(2);
+                        else cell.SetColor(1);
                     }
                 }
                 foreach (Cell cell in temp)
@@ -476,11 +617,11 @@ public class PlayerControls : MonoBehaviour
             }
         }
     }
-    
+}
+    /*
     private bool MonsterIsSelected(Vector2 position, Bounds bounds)
     {
         //Debug.Log("Monster position: " + position  +"\n Bounds position: " + bounds);
         return position.x > bounds.min.x && position.x < bounds.max.x && position.y > bounds.min.y && position.y < bounds.max.y;
     }
-    
-}
+    */

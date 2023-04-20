@@ -41,7 +41,11 @@ public class Cell : MonoBehaviour
         }
         Debug.Log("This cell is adjacent to " + adjacentRooms.Count + " rooms.");
         if (adjacentRooms.Count == 0) room = new Room(this);
-        else if (adjacentRooms.Count == 1) adjacentRooms[0].AddCell(this);
+        else if (adjacentRooms.Count == 1)
+        {
+            adjacentRooms[0].AddCell(this);
+            room = adjacentRooms[0];
+        }
         else
         {
             Debug.Log("Finding Largest Room");
@@ -58,6 +62,7 @@ public class Cell : MonoBehaviour
             Debug.Log("Largest Room found: contains " + largestRoom.GetSize() + " Cells");
             foreach (Room room in adjacentRooms) if (!room.Equals(largestRoom)) largestRoom.MergeRoom(room);
             largestRoom.AddCell(this);
+            room = largestRoom;
         }
     }
 
@@ -160,6 +165,7 @@ public class Cell : MonoBehaviour
 
     public void SetRoom(Room toSet)
     {
+        Debug.Log("Room was set");
         room = toSet;
     }
 }

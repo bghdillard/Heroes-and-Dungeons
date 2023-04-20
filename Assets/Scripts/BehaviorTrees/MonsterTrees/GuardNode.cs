@@ -21,7 +21,7 @@ public class GuardNode : Node
     {
         Room guardRoom = (Room)parent.GetData("guardRoom");
         if (guardRoom == null) return NodeState.FAILURE;
-        if (Vector3.Distance(agent.destination, agent.transform.position) <= 0.05f && (currTimer -= Time.deltaTime) <= 0)
+        if (agent.remainingDistance <= 0.05f && (currTimer -= Time.deltaTime) <= 0)
         {
             currTimer = initialTimer;
             agent.SetDestination(guardRoom.GetRandomPoint());

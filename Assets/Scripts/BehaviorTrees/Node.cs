@@ -72,7 +72,7 @@ namespace BehaviorTree
         public bool RemoveData(string key)
         {
             Debug.Log("We are Removing Data of key " + key); 
-            if(data[key] != null)
+            if(data.ContainsKey(key))
             {
                 data.Remove(key);
                 return true;

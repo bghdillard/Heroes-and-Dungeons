@@ -372,7 +372,7 @@ public abstract class Monster : Creature
                     new RestorePathfindNode(agent),
                     new StaminaRestoreNode(this)
                 }),
-                new Sequence(new List<Node>{
+                new Sequence(new List<Node>{ //sequence for the magic restoring sub-tree
                     new MagicFindNode(this),
                     new RestorePathfindNode(agent),
                     new MagicRestoreNode(this)
@@ -386,6 +386,44 @@ public abstract class Monster : Creature
             new GuardNode(agent, idleTimer), //GuardNode leaf
             new IdleNode(agent, idleTimer) //IdleNode leaf
         });
+    }
+
+    public bool GetGuardRoom(out Room room)
+    {
+        room = guardRoom;
+        return guardRoom != null;
+    }
+
+    public bool GetPatrol(out Patrol patrol)
+    {
+        patrol = this.patrol;
+        return patrol != null;
+    }
+
+    public void AssignDefense(Room toAssign)
+    {
+        guardRoom = toAssign;
+        patrol = null;
+        root.RemoveData("guardRoom");
+        root.RemoveData("patrol");
+        root.SetData("guardRoom", toAssign);
+    }
+
+    public void AssignDefense(Patrol toAssign)
+    {
+        patrol = toAssign;
+        guardRoom = null;
+        root.RemoveData("guardRoom");
+        root.RemoveData("patrol");
+        root.SetData("patrol", toAssign);
+    }
+
+    public void UnassignDefense()
+    {
+        guardRoom = null;
+        patrol = null;
+        root.RemoveData("guardRoom");
+        root.RemoveData("patrol");
     }
 
     public void Select()
@@ -586,5 +624,10 @@ public abstract class Monster : Creature
     public bool GetMagicMax()
     {
         return currMaxMagic == maxMagic;
+    }
+
+    public string GetName()
+    {
+        return monsterName;
     }
 }

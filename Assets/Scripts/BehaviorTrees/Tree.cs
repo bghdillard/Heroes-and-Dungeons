@@ -7,7 +7,7 @@ namespace BehaviorTree
 {
     public abstract class Tree : MonoBehaviour
     {
-        private Node root;
+        protected Node root;
 
         // Start is called before the first frame update
         protected virtual void Start()

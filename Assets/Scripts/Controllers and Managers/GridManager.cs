@@ -21,7 +21,11 @@ public class GridManager : MonoBehaviour
     private static Dictionary<string, List<Container>> containers;
     private static Dictionary<string, List<Restorative>> restoratives;
     private static List<Room> rooms;
+    private static List<Room> guardRooms;
+    private static List<Patrol> patrols;
     //private static List<NavMeshBuildSource> sources;
+
+    private static bool defenseVisibility;
 
     public float xOffset;
     public float yOffset;
@@ -57,14 +61,21 @@ public class GridManager : MonoBehaviour
             {"Stamina", new List<Restorative>()},
             {"Magic", new List<Restorative>()}
         };
+
         rooms = new List<Room>();
+        guardRooms = new List<Room>();
+        patrols = new List<Patrol>();
+
         activeLayer = 3;
         grid = new Cell[100, 4, 100];
+
         GameObject ground = Instantiate(Resources.Load<GameObject>("Special/Ground"), worldGeography.transform);
         ground.layer = 6;
         ground.AddComponent<Ground>();
+
+        defenseVisibility = false;
         StartCoroutine(DungeonBuilder.BuildGrid(grid, activeLayer, worldGeography, cellHolder, xOffset, yOffset, seed));
-        PlayerControls.SetInfo(grid, activeLayer);
+        PlayerControls.SetInfo(activeLayer);
     }
 
     public static bool CheckAdjacent(Cell toCheck) //Checks to see if the cell attempting to be accessed can be accessed
@@ -379,11 +390,17 @@ public class GridManager : MonoBehaviour
     public static void AddRoom(Room toAdd)
     {
         rooms.Add(toAdd);
+        if (toAdd.IsGuardRoom())
+        {
+            guardRooms.Add(toAdd);
+            if (defenseVisibility) toAdd.ToggleVisible(true);
+        }
     }
 
     public static void RemoveRoom(Room toRemove)
     {
         rooms.Remove(toRemove);
+        if (toRemove.IsGuardRoom()) guardRooms.Remove(toRemove);
     }
 
     public static List<Room> GetRooms()
@@ -412,7 +429,25 @@ public class GridManager : MonoBehaviour
 
     public static Cell GetCellAt(int x, int y, int z)
     {
+        Debug.Log("Getting cell at " + new Vector3(x, y, z));
         if(x > 99 || x < 00 || z > 99 || z < 0) return null;
         return grid[x,y,z];
+    }
+
+    public static void ToggleDefenseVisibility (bool toToggle)
+    {
+        foreach (Room room in guardRooms) room.ToggleVisible(toToggle);
+        foreach (Patrol patrol in patrols) patrol.ToggleVisible(toToggle);
+        defenseVisibility = toToggle;
+    }
+
+    public static void AddPatrol(Patrol toAdd)
+    {
+        patrols.Add(toAdd);
+    }
+
+    public static void RemovePatrol(Patrol toRemove)
+    {
+        patrols.Remove(toRemove);
     }
 }
