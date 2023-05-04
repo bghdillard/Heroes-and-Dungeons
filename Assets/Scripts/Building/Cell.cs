@@ -16,15 +16,15 @@ public class Cell : MonoBehaviour
     private List<Color> orderColors;
     [SerializeField]
     private List<Renderer> renderers;
-    private List<Material> materials;
+    private Dictionary<Renderer, Material[]> sharedMaterials;
     private IOrder order;
     private Room room;
 
     private void Awake()
     {
         items = new List<GameObject>();
-        materials = new List<Material>();
-        foreach (Renderer renderer in renderers) materials.AddRange(renderer.materials);
+        sharedMaterials = new Dictionary<Renderer, Material[]>();
+        foreach (Renderer renderer in renderers) sharedMaterials.Add(renderer, renderer.sharedMaterials);
         //startColor = GetComponent<Renderer>().material.color;
     }
 
@@ -111,7 +111,7 @@ public class Cell : MonoBehaviour
     public void SetColor(int toSet)
     {
         //Debug.Log("Cell SetColor called");
-        if (materials != null)
+        if (sharedMaterials.Count != 0)
         {
             /*SetComponent<Renderer>().material.color = toSet;
             List<Material> materials = renderer.materials;
@@ -120,10 +120,13 @@ public class Cell : MonoBehaviour
             temp[1] = orderMaterials[toSet];
             GetComponent<Renderer>().materials = temp;
             */
-            foreach(Material material in materials)
+            foreach(Renderer renderer in renderers)
             {
-                material.EnableKeyword("_EMISSION");
-                material.SetColor("_EmissionColor", orderColors[toSet]);
+                foreach (Material material in renderer.materials)
+                {
+                    material.EnableKeyword("_EMISSION");
+                    material.SetColor("_EmissionColor", orderColors[toSet]);
+                }
             }
         }
     }
@@ -132,9 +135,9 @@ public class Cell : MonoBehaviour
     {
         //Debug.Log("Cell ResetColor called");
         //Renderer renderer = GetComponent<Renderer>();
-        if (materials != null)
+        if (sharedMaterials.Count != 0)
         {
-            foreach (Material material in materials) material.DisableKeyword("_EMISSION");
+            foreach (Renderer renderer in renderers) renderer.sharedMaterials = sharedMaterials[renderer];
             /*
             Material[] temp = new Material[1];
             temp[0] = GetComponent<Renderer>().materials[0];

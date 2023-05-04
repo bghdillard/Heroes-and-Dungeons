@@ -79,6 +79,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2608170759008911172, guid: 00d38577560df4d42ac9d31e7b74b03f, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: b4df08ff90835cb4a89c69768b0e0b73, type: 2}
     - target: {fileID: 2939311037106847003, guid: 00d38577560df4d42ac9d31e7b74b03f, type: 3}
       propertyPath: m_LocalPosition.z
       value: -0.5
@@ -164,6 +168,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2608170759008911172, guid: 00d38577560df4d42ac9d31e7b74b03f, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: b4df08ff90835cb4a89c69768b0e0b73, type: 2}
     - target: {fileID: 2939311037106847003, guid: 00d38577560df4d42ac9d31e7b74b03f, type: 3}
       propertyPath: m_LocalPosition.x
       value: -0.5
@@ -265,6 +273,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2608170759008911172, guid: 00d38577560df4d42ac9d31e7b74b03f, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: b4df08ff90835cb4a89c69768b0e0b73, type: 2}
     - target: {fileID: 2939311037106847003, guid: 00d38577560df4d42ac9d31e7b74b03f, type: 3}
       propertyPath: m_LocalPosition.z
       value: 0.5
@@ -362,6 +374,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2608170759008911172, guid: 00d38577560df4d42ac9d31e7b74b03f, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: b4df08ff90835cb4a89c69768b0e0b73, type: 2}
     - target: {fileID: 2939311037106847003, guid: 00d38577560df4d42ac9d31e7b74b03f, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0.5
@@ -503,6 +519,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Roof
       objectReference: {fileID: 0}
+    - target: {fileID: 6994162638030165520, guid: e891e24bcad30bf42b8f88ea7463cf17, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: b4df08ff90835cb4a89c69768b0e0b73, type: 2}
     m_RemovedComponents: []
     m_AddedGameObjects: []
   m_SourcePrefab: {fileID: 100100000, guid: e891e24bcad30bf42b8f88ea7463cf17, type: 3}
