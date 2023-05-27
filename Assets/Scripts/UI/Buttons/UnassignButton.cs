@@ -9,12 +9,14 @@ public class UnassignButton : MonoBehaviour
     private Room room;
     private Patrol patrol;
     private Button button;
+    private AssignmentPanel panel;
 
-    public void Setup(Monster toSetup)
+    public void Setup(Monster toSetup, AssignmentPanel panel)
     {
         monster = toSetup;
         button = GetComponent<Button>();
         button.onClick.AddListener(Unassign);
+        this.panel = panel;
     }
 
     public void Connect(Room toConnect)
@@ -45,5 +47,6 @@ public class UnassignButton : MonoBehaviour
         monster.UnassignDefense();
         button.interactable = false;
         transform.parent.GetComponent<Image>().color = Color.white;
+        panel.AssignReset();
     }
 }

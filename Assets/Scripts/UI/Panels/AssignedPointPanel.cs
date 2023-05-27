@@ -14,6 +14,8 @@ public class AssignedPointPanel : MonoBehaviour //This script relates to the two
     private TextMeshProUGUI maxCountText;
     [SerializeField]
     private GameObject scroll;
+    [SerializeField]
+    private PatrolPanel patrolPanel;
     #endregion
 
     private List<AssignmentPanel> panels = new List<AssignmentPanel>();
@@ -28,12 +30,21 @@ public class AssignedPointPanel : MonoBehaviour //This script relates to the two
         pointName.text = toAssign.GetName();
         SetCurrCount(toAssign.GetAssignedCount());
         SetMaxCount(toAssign.GetSize());
+        patrolPanel.gameObject.SetActive(false);
         foreach (AssignmentPanel panel in panels) panel.Connect(toAssign);
     }
 
-    public void AssignPoint(Patrol toAssign)
+    public void AssignPoint(PatrolPoint toAssign)
     {
-        
+        Debug.Log("We are assigning a patrol");
+        Patrol patrol = toAssign.GetPatrol();
+        gameObject.SetActive(true);
+        pointName.text = patrol.GetName();
+        SetCurrCount(patrol.GetAssignedCount());
+        SetMaxCount(patrol.GetSize()); //in the future, the max amount of assigned monsters per patrol will be handled elsewhere
+        patrolPanel.gameObject.SetActive(true);
+        foreach (AssignmentPanel panel in panels) panel.Connect(patrol);
+        patrolPanel.Connect(toAssign);
     }
 
     public void AddPanel(GameObject toAdd)

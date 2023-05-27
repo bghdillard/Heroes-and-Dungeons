@@ -50,6 +50,7 @@ public class PlayerControls : MonoBehaviour
 
     private Room activeRoom;
     private Patrol activePatrol;
+    private PatrolPoint activePoint;
 
     // Start is called before the first frame update
     void Start()
@@ -254,10 +255,49 @@ public class PlayerControls : MonoBehaviour
 
     private void HandlePatrolInput()
     {
-        throw new System.NotImplementedException();
         if (Input.GetMouseButtonDown(0) && !EventSystem.current.IsPointerOverGameObject())
         {
             RaycastHit hit;
+            if (Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out hit)
+                && (hit.collider.GetComponentInParent<Cell>() != null && hit.collider.GetComponentInParent<Cell>().TraitsContains("Traversable") || hit.collider.GetComponent<Ground>() != null || hit.collider.GetComponent<PatrolPoint>()))
+            {
+                if(activePatrol != null)
+                {
+                    if (activePatrol.GetSize() < DungeonStats.GetStat("PatrolPointLimit"))
+                    {
+                        if (activePoint.ContainsPoint(hit.point, out PatrolPoint point)) //If we are too close to an existing point in the current patrol, don't actually add a new point, add a copy of that point to the list
+                        {
+                            PatrolPoint newPoint = Instantiate(Resources.Load<GameObject>("Special/PatrolPoint"), point.GetPoint(), new Quaternion()).GetComponent<PatrolPoint>().GetComponent<PatrolPoint>();
+                            newPoint.ToggleVisible(true);
+                            newPoint.Setup(activePatrol);
+                            activePatrol.AddPoint(newPoint);
+                        }
+                        else
+                        {
+                            NavMeshPath path = new NavMeshPath();
+                            NavMesh.CalculatePath(hit.point, activePatrol.GetEndPoint(), -1, path);
+                            if (Helpers.GetPathLength(path) < DungeonStats.GetStat("PatrolPointDistance"))
+                            {
+                                PatrolPoint newPoint = Instantiate(Resources.Load<GameObject>("Special/PatrolPoint"), hit.point, new Quaternion()).GetComponent<PatrolPoint>().GetComponent<PatrolPoint>();
+                                newPoint.ToggleVisible(true);
+                                newPoint.Setup(activePatrol);
+                                activePatrol.AddPoint(newPoint);
+                            }
+                        }
+                    }
+                }
+                else //if we do not have a current patrol selected, create a new patrol with this point as the origin, and then select it;
+                {
+                    activePatrol = new Patrol(Instantiate(Resources.Load<GameObject>("Special/PatrolPoint"), hit.point, new Quaternion()).GetComponent<PatrolPoint>());
+                    activePatrol.ToggleVisible(true);
+                    activePatrol.SetPanel(assignedPointPanel);
+                    activePatrol.Select();
+                    activePoint = activePatrol.GetOrigin();
+                    activePoint.Setup(activePatrol);
+                    activePoint.SetPanel(assignedPointPanel);
+                    activePoint.Select();
+                }
+            }
         }
     }
 
@@ -289,6 +329,7 @@ public class PlayerControls : MonoBehaviour
         recruitMode = false;
         recruitUI.SetActive(false);
         defenseMode = false;
+        patrolMode = false;
         GridManager.ToggleDefenseVisibility(false);
         patrolPointButton.SetActive(false);
         assignedPointPanel.gameObject.SetActive(false);
@@ -303,6 +344,7 @@ public class PlayerControls : MonoBehaviour
         buildUI.SetActive(false);
         recruitMode = false;
         recruitUI.SetActive(false);
+        patrolMode = false;
         defenseMode = !defenseMode;
         modeIndicator.SetActive(defenseMode);
         patrolPointButton.SetActive(defenseMode);
@@ -316,6 +358,7 @@ public class PlayerControls : MonoBehaviour
         buildMode = false;
         buildUI.SetActive(false);
         defenseMode = false;
+        patrolMode = false;
         GridManager.ToggleDefenseVisibility(false);
         modeIndicator.SetActive(false);
         patrolPointButton.SetActive(false);
@@ -327,6 +370,13 @@ public class PlayerControls : MonoBehaviour
     public void TogglePatrolMode()
     {
         patrolMode = !patrolMode;
+        if (activePoint != null)
+        {
+            activePoint.Deselect();
+            activePoint = null;
+            activePatrol.Deselect();
+            activePatrol = null;
+        }
     }
 
     private void HandleSelectInput()
@@ -343,9 +393,9 @@ public class PlayerControls : MonoBehaviour
                         monster.PseudoSelect();
                         foreach (Monster oldMonster in selectedMonsters) oldMonster.Deselect();
                         selectedMonsters = new List<Monster>()
-                {
-                    monster
-                };
+                        {
+                            monster
+                        };
                     }
                     else
                     {
@@ -364,6 +414,13 @@ public class PlayerControls : MonoBehaviour
                         {
                             room.SetPanel(assignedPointPanel);
                             if (activeRoom != null && room != activeRoom) activeRoom.Deselect();
+                            if (activePoint != null)
+                            {
+                                activePoint.Deselect();
+                                activePoint = null;
+                                activePatrol.Deselect();
+                                activePatrol = null;
+                            }
                             room.Select();
                             activeRoom = room;
                             Debug.Log("You clicked on a guard room while in defense mode");
@@ -379,6 +436,17 @@ public class PlayerControls : MonoBehaviour
                     else if (hit.collider.GetComponent<PatrolPoint>() != null)
                     {
                         PatrolPoint point = hit.collider.GetComponent<PatrolPoint>();
+                        if (activePoint != null && point != activePoint) activePoint.Deselect();
+                        if(activeRoom != null)
+                        {
+                            activeRoom.Deselect();
+                            activeRoom = null;
+                        }
+                        point.SetPanel(assignedPointPanel);
+                        point.Select();
+                        activePoint = point;
+                        if (activePatrol != null && activePatrol != point.GetPatrol()) activePatrol.Deselect();
+                        activePatrol = point.GetPatrol();
                         Debug.Log("You clicked on a patrol point while in defense mode");
                     }
                     else
@@ -388,8 +456,11 @@ public class PlayerControls : MonoBehaviour
                             activeRoom.Deselect();
                             activeRoom = null;
                         }
-                        else if(activePatrol != null)
+                        else if(activePoint != null)
                         {
+                            activePoint.Deselect();
+                            activePoint = null;
+                            activePatrol.Deselect();
                             activePatrol = null;
                             Debug.Log("Hey, you clicked off a selected point");
                         }

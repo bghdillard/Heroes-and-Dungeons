@@ -9,10 +9,12 @@ public class AssignButton : MonoBehaviour
     private Room room;
     private Patrol patrol;
     private Button button;
+    private AssignmentPanel panel;
 
-    public void Setup(Monster toSetup)
+    public void Setup(Monster toSetup, AssignmentPanel panel)
     {
         monster = toSetup;
+        this.panel = panel;
         button = GetComponent<Button>();
         button.onClick.AddListener(Assign);
     }
@@ -46,8 +48,9 @@ public class AssignButton : MonoBehaviour
     {
         if (room != null) monster.AssignDefense(room);
         else if (patrol != null) monster.AssignDefense(patrol);
-        else Debug.LogError("Assign called with no valid assignment Room is of size " + room.GetSize());
+        else Debug.LogError("Assign called with no valid assignment"); //Room is of size " + room.GetSize());
         button.interactable = false;
         transform.parent.GetComponent<Image>().color = Color.green;
+        panel.UnassignReset();
     }
 }

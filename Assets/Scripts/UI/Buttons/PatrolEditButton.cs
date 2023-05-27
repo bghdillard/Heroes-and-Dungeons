@@ -19,6 +19,12 @@ public class PatrolEditButton : MonoBehaviour
         GetComponent<Button>().onClick.AddListener(PatrolToggle);
     }
 
+    private void OnDisable()
+    {
+        text.text = "Create New Patrol";
+        active = false;
+    }
+
     private void PatrolToggle()
     {
         pc.TogglePatrolMode();
@@ -27,6 +33,6 @@ public class PatrolEditButton : MonoBehaviour
         {
             text.text = "End Editing";
         }
-        else text.text = "Edit Patrol Points";
+        else text.text = "Create New Patrol";
     }
 }

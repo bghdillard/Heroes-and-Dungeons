@@ -25,12 +25,13 @@ public class PatrolNode : Node
     public override NodeState Evaluate()
     {
         PatrolGroup group = monster.GetGroup();
-        if(agent.destination == agent.transform.position)
+        if(agent.remainingDistance <= 0.05f)
         {
             if(group.GetPoint() == lastPoint)
             {
                 if(!groupNotified && (currTimer -= Time.deltaTime) <= 0)
                 {
+                    Debug.Log("Notifying group");
                     currTimer = initialTimer;
                     group.AddArrival();
                     groupNotified = true;

@@ -7,13 +7,15 @@ public class PatrolGroup
     private List<Monster> monsters;
     private PatrolPoint currPoint;
     private Patrol patrol;
-    private int numArrived;
+    private bool reverse = false;
+    private int numArrived = 0;
 
     public PatrolGroup(Monster initial, PatrolPoint startPoint, Patrol patrol)
     {
         currPoint = startPoint;
         this.patrol = patrol;
         monsters = new List<Monster>() { initial };
+        initial.SetGroup(this);
     }
 
     public void AddMonster(Monster toAdd)
@@ -23,6 +25,7 @@ public class PatrolGroup
 
     public void RemoveMonster(Monster toRemove)
     {
+        Debug.Log("Removing Monster");
         monsters.Remove(toRemove);
         if (monsters.Count == 0) patrol.RemoveGroup();
     }
@@ -34,16 +37,39 @@ public class PatrolGroup
 
     public void IteratePoint()
     {
-        currPoint = currPoint.GetNext();
+        if (reverse)
+        {
+            if(currPoint.GetPrevious() == null)
+            {
+                reverse = false;
+                IteratePoint();
+                return;
+            }
+            currPoint = currPoint.GetPrevious();
+        }
+        else
+        {
+            if(currPoint.GetNext() == null)
+            {
+                reverse = true;
+                IteratePoint();
+                return;
+            }
+            currPoint = currPoint.GetNext();
+        }
     }
 
     public void AddArrival()
     {
-        if(numArrived++ == monsters.Count)
+        Debug.Log("number of monsters in group " + monsters.Count);
+        numArrived++;
+        if (numArrived >= monsters.Count)
         {
+            Debug.Log("All have arrived");
             IteratePoint();
             numArrived = 0;
             foreach (Monster monster in monsters) monster.GroupIterate();
         }
+        else Debug.Log("Not all have arrived, numArrived is: " + numArrived);
     }
 }

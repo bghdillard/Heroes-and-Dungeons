@@ -411,6 +411,7 @@ public abstract class Monster : Creature
 
     public void AssignDefense(Patrol toAssign)
     {
+        Debug.Log("Assign patrol called");
         patrol = toAssign;
         guardRoom = null;
         root.RemoveData("guardRoom");
@@ -422,6 +423,8 @@ public abstract class Monster : Creature
     {
         guardRoom = null;
         patrol = null;
+        if (group != null) group.RemoveMonster(this);
+        group = null;
         root.RemoveData("guardRoom");
         root.RemoveData("patrol");
     }

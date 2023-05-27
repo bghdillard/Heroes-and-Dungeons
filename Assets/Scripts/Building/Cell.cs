@@ -110,7 +110,7 @@ public class Cell : MonoBehaviour
 
     public void SetColor(int toSet)
     {
-        //Debug.Log("Cell SetColor called");
+        Debug.Log("Cell SetColor called");
         if (sharedMaterials.Count != 0)
         {
             /*SetComponent<Renderer>().material.color = toSet;
@@ -120,7 +120,7 @@ public class Cell : MonoBehaviour
             temp[1] = orderMaterials[toSet];
             GetComponent<Renderer>().materials = temp;
             */
-            foreach(Renderer renderer in renderers)
+            foreach (Renderer renderer in renderers)
             {
                 foreach (Material material in renderer.materials)
                 {
@@ -129,11 +129,12 @@ public class Cell : MonoBehaviour
                 }
             }
         }
+        else Debug.Log("SharedMaterials.Count = 0");
     }
 
     public void ResetColor()
     {
-        //Debug.Log("Cell ResetColor called");
+        Debug.Log("Cell ResetColor called");
         //Renderer renderer = GetComponent<Renderer>();
         if (sharedMaterials.Count != 0)
         {
