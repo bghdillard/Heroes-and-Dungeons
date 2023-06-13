@@ -70,6 +70,11 @@ public class PatrolPoint : MonoBehaviour
         return next.ContainsPoint(toCheck, out point);
     }
 
+    public bool IsPoint(Vector3 toCheck)
+    {
+        return toCheck == point;
+    }
+
     public PatrolPoint GetNext()
     {
         return next;

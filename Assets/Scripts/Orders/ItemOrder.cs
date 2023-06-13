@@ -5,30 +5,33 @@ using UnityEngine;
 public class ItemOrder : IOrder
 {
     private readonly string orderType = "itemBuild";
-    Cell location;
+    Cell[] cells;
+    Vector3 location;
+    Quaternion rotation;
     string toBuild;
-    int rotation;
     bool isStarted;
     GameObject placeHolder;
     float time;
 
-    public ItemOrder(Cell location, string toBuild, int rotation)
+    public ItemOrder(Cell[] cells, string toBuild, GameObject preview)
     {
-        this.location = location;
+        this.cells = cells;
         this.toBuild = toBuild;
-        this.rotation = rotation;
+        location = preview.transform.position;
+        rotation = preview.transform.rotation;
         isStarted = false;
-        placeHolder = GameObject.Instantiate(Resources.Load<GameObject>("Preview/" + toBuild));
+        placeHolder = GameObject.Instantiate(Resources.Load<GameObject>("Preview/" + toBuild), location, rotation);
+        placeHolder.GetComponent<PreviewItem>().SetColor(1);
         time = Time.time;
-        location.SetOrder(this);
+        foreach (Cell cell in cells) cell.SetOrder(this);
     }
 
     public Vector3 GetLocation()
     {
-        return location.transform.position;
+        return location;
     }
 
-    public int GetRotation()
+    public Quaternion GetRotation()
     {
         return rotation;
     }
@@ -42,13 +45,19 @@ public class ItemOrder : IOrder
     {
         //update the target item's color;
         isStarted = true;
+        placeHolder.GetComponent<PreviewItem>().SetColor(2);
     }
 
     public void CancelOrder()
     {
         //Destroy the placeholder object and remove the order from the cell;
         GameObject.Destroy(placeHolder);
-        location.CancelOrder();
+        foreach(Cell cell in cells) cell.CancelOrder();
+    }
+
+    public void ClearPlaceholder()
+    {
+        GameObject.Destroy(placeHolder);
     }
 
     public bool GetStarted()
@@ -66,9 +75,9 @@ public class ItemOrder : IOrder
         return toBuild;
     }
 
-    public Cell GetCell()
+    public Cell[] GetCells()
     {
-        return location;
+        return cells;
     }
 
     public override bool Equals(object obj)
@@ -82,7 +91,7 @@ public class ItemOrder : IOrder
         else
         {
             IOrder toCheck = (IOrder)obj;
-            return location.transform.position == toCheck.GetLocation() && orderType == toCheck.GetOrderType();
+            return location == toCheck.GetLocation() && orderType == toCheck.GetOrderType();
         }
     }
 

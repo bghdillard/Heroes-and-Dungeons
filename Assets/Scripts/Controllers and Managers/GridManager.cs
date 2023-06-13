@@ -347,11 +347,12 @@ public class GridManager : MonoBehaviour
         return closestContainer;
     }
 
-    public static void UpdateItemGrid(Cell toUpdate, string toFetch, int rotation) //Changes the item in the location to the one stored in toFetch
+    public static void UpdateItemGrid(Cell[] cells, string toFetch, Vector3 location, Quaternion rotation) //Changes the item in the location to the one stored in toFetch
     {
         //Debug.Log("Yeah... I still need to cry over this one a bit");
-        GameObject temp = Instantiate(Resources.Load<GameObject>("Items/" + toFetch), toUpdate.transform);
-        if (rotation == 0) //set the location in the cell depending on the rotation
+        GameObject temp = Instantiate(Resources.Load<GameObject>("Items/" + toFetch), location, rotation);
+        foreach (Cell cell in cells) cell.AddItem(temp);
+        /*if (rotation == 0) //set the location in the cell depending on the rotation
         {
             temp.transform.Rotate(0, 0, 0, Space.Self);
             temp.transform.localPosition = new Vector3(0, -0.5f + (temp.transform.localScale.y / 2), -0.5f + (temp.transform.localScale.z / 2));
@@ -375,11 +376,11 @@ public class GridManager : MonoBehaviour
         //Container toAdd = temp.GetComponent<Container>();
         //if (toAdd != null) UpdateResources(toAdd); //If the item being added is a container, add it's stat changes to the dungeon. This'll now be done in Containers awake.
         temp.layer = toUpdate.gameObject.layer; //because the item is inside a cell, it should have the same layer
-        /*Vector3 toModify = temp.transform.position;
+        Vector3 toModify = temp.transform.position;
         toModify.y += temp.transform.localScale.y / 2; 
-        temp.transform.position = toModify;*/
+        temp.transform.position = toModify;
         
-        /* notes for rotaion:
+          notes for rotaion:
          * 0 = 0x, 0z
          * 90 = 1x, 0z
          * 180 = 0x, 0z
@@ -430,7 +431,7 @@ public class GridManager : MonoBehaviour
     public static Cell GetCellAt(int x, int y, int z)
     {
         Debug.Log("Getting cell at " + new Vector3(x, y, z));
-        if(x > 99 || x < 00 || z > 99 || z < 0) return null;
+        if (x > 99 || x < 0 || z > 99 || z < 0) return null;
         return grid[x,y,z];
     }
 

@@ -246,7 +246,7 @@ public class Builder : MonoBehaviour
         }
         Debug.Log("Building progress End");
         ItemOrder temp = (ItemOrder)CurrOrder;
-        GridManager.UpdateItemGrid(temp.GetCell(), temp.GetToBuild(), temp.GetRotation());//now that we're done, remove the order and add the item
+        GridManager.UpdateItemGrid(temp.GetCells(), temp.GetToBuild(), temp.GetLocation(),temp.GetRotation());//now that we're done, remove the order and add the item
         builderController.RemoveOrder(CurrOrder);
         tryClaim = true; //now that we're done building, try to claim a new adjacent order
         builderController.DoClaimStutter();

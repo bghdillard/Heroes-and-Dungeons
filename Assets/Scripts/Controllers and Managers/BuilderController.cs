@@ -37,35 +37,58 @@ public class BuilderController : MonoBehaviour
                 NavMeshPath path = new NavMeshPath();
                 float closestDistance = float.MaxValue;
                 Vector3 target = new Vector3();
-                foreach (Builder builder in builders) //find the closest builder; for building, this requires checking the four adjacent cells;
+                foreach (Builder builder in builders) //find the closest builder; for cell building, this requires checking the four adjacent cells;
                 {
                     if (!builder.IsWorking())
                     {
                         Debug.Log("Now checking builder at: " + builder.transform.position);
                         Vector3 center = toDo.GetLocation();
-                        for (int i = (int)center.x - 1; i < center.x + 2; i++) //A note to future me, this area is very likely to get very expensive;
+                        string orderType = toDo.GetOrderType();
+                        if (orderType == "cellBuild")
                         {
-                            if (NavMesh.CalculatePath(builder.transform.position, new Vector3(i, center.y, center.z), -1, path))
+                            for (int i = (int)center.x - 1; i < center.x + 2; i++) //A note to future me, this area is very likely to get very expensive;
                             {
-                                float distance = Vector3.Distance(builder.transform.position, path.corners[0]);
-                                for (int y = 1; y < path.corners.Length; y++)
+                                if (NavMesh.CalculatePath(builder.transform.position, new Vector3(i, center.y, center.z), -1, path))
                                 {
-                                    distance += Vector3.Distance(path.corners[y - 1], path.corners[y]);
+                                    float distance = Vector3.Distance(builder.transform.position, path.corners[0]);
+                                    for (int y = 1; y < path.corners.Length; y++)
+                                    {
+                                        distance += Vector3.Distance(path.corners[y - 1], path.corners[y]);
+                                    }
+                                    Debug.Log("Final distance on this path is " + distance);
+                                    if (distance < closestDistance)
+                                    {
+                                        Debug.Log("Distance " + distance + " is less than current closest " + closestDistance + ". Builder at " + builder.transform.position + " is new closest");
+                                        closestBuilder = builder;
+                                        closestDistance = distance;
+                                        target = new Vector3(i, center.y, center.z);
+                                    }
                                 }
-                                Debug.Log("Final distance on this path is " + distance);
-                                if (distance < closestDistance)
+                            }
+                            Debug.Log("Closest distance moving to z is: " + closestDistance);
+                            for (int i = (int)center.z - 1; i < center.z + 2; i++)
+                            {
+                                if (NavMesh.CalculatePath(builder.transform.position, new Vector3(center.x, center.y, i), -1, path))
                                 {
-                                    Debug.Log("Distance " + distance + " is less than current closest " + closestDistance + ". Builder at " + builder.transform.position + " is new closest");
-                                    closestBuilder = builder;
-                                    closestDistance = distance;
-                                    target = new Vector3(i, center.y, center.z);
+                                    float distance = Vector3.Distance(builder.transform.position, path.corners[0]);
+                                    for (int y = 1; y < path.corners.Length; y++)
+                                    {
+                                        distance += Vector3.Distance(path.corners[y - 1], path.corners[y]);
+                                    }
+                                    Debug.Log("Final distance on this path is " + distance);
+                                    if (distance < closestDistance)
+                                    {
+                                        Debug.Log("Distance " + distance + " is less than current closest " + closestDistance + ". Builder at " + builder.transform.position + " is new closest");
+                                        closestBuilder = builder;
+                                        closestDistance = distance;
+                                        target = new Vector3(center.x, center.y, i);
+                                    }
                                 }
                             }
                         }
-                        Debug.Log("Closest distance moving to z is: " + closestDistance);
-                        for (int i = (int)center.z - 1; i < center.z + 2; i++)
+                        else if (orderType == "itemBuild")// for item building, we just need to check the item location to find the closest builder;
                         {
-                            if (NavMesh.CalculatePath(builder.transform.position, new Vector3(center.x, center.y, i), -1, path))
+                            if(NavMesh.CalculatePath(builder.transform.position, center, -1, path))
                             {
                                 float distance = Vector3.Distance(builder.transform.position, path.corners[0]);
                                 for (int y = 1; y < path.corners.Length; y++)
@@ -78,7 +101,7 @@ public class BuilderController : MonoBehaviour
                                     Debug.Log("Distance " + distance + " is less than current closest " + closestDistance + ". Builder at " + builder.transform.position + " is new closest");
                                     closestBuilder = builder;
                                     closestDistance = distance;
-                                    target = new Vector3(center.x, center.y, i);
+                                    target = center;
                                 }
                             }
                         }
@@ -194,6 +217,11 @@ public class BuilderController : MonoBehaviour
                 IOrder order = toCheck[i].GetOrder();
                 if(order != null) if (interimOrders.Remove(order)) highPriorityQueue.Enqueue(order); //if the adjacent cell has an order, and that order was in the interim orders list, add that order to the building queue;
             }
+        }
+        else if(toRemove.GetOrderType() == "itemBuild") //if the finished order was an item building order, remove the preview item
+        {
+            ItemOrder temp = (ItemOrder)toRemove;
+            temp.ClearPlaceholder();
         }
     }
 

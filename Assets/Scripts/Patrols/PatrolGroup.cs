@@ -51,6 +51,12 @@ public class PatrolGroup
         {
             if(currPoint.GetNext() == null)
             {
+                if (patrol.GetOrigin().IsPoint(currPoint.GetPoint()))
+                {
+                    Debug.Log("Patrol is a loop");
+                    currPoint = patrol.GetOrigin().GetNext();
+                    return;
+                }
                 reverse = true;
                 IteratePoint();
                 return;

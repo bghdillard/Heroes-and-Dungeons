@@ -35,7 +35,7 @@ public class PlayerControls : MonoBehaviour
     private static int activeLayer;
     //private static Cell[,,] grid;
     private HashSet<Cell> selectedCells;
-    private Dictionary<Cell, GameObject> previewItems;
+    private Dictionary<Cell, GameObject> placedPreviewItems;
     private List<Monster> selectedMonsters;
 
     [SerializeField]
@@ -51,6 +51,15 @@ public class PlayerControls : MonoBehaviour
     private Room activeRoom;
     private Patrol activePatrol;
     private PatrolPoint activePoint;
+    private GameObject activePreview;
+
+    #region previewItemsDictionary
+    [SerializeField]
+    private List<string> previewKeys;
+    [SerializeField]
+    private List<GameObject> previewValues;
+    private Dictionary<string, GameObject> previewItems;
+    #endregion
 
     // Start is called before the first frame update
     void Start()
@@ -63,11 +72,14 @@ public class PlayerControls : MonoBehaviour
         patrolMode = false;
 
         selectedCells = new HashSet<Cell>();
-        previewItems = new Dictionary<Cell, GameObject>();
+        placedPreviewItems = new Dictionary<Cell, GameObject>();
         selectedMonsters = new List<Monster>();
 
         dragSelectStarted = false;
         orderCancelMode = false;
+
+        previewItems = new Dictionary<string, GameObject>();
+        for (int i = 0; i < previewKeys.Capacity; i++) previewItems.Add(previewKeys[i], previewValues[i]);
 
         itemRotation = 0;
     }
@@ -123,13 +135,12 @@ public class PlayerControls : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(1))
         {
-            buildUI.SetActive(!buildUI.activeSelf);
             if (dragSelectStarted)
             {
                 dragSelectStarted = false;
                 foreach (Cell cell in selectedCells)
                 {
-                    if(!orderCancelMode) cell.ResetColor();
+                    if (!orderCancelMode) cell.ResetColor();
                     else
                     {
                         if (cell.GetOrder().GetStarted()) cell.SetColor(2);
@@ -139,8 +150,18 @@ public class PlayerControls : MonoBehaviour
                 selectedCells.Clear();
                 orderCancelMode = false;
             }
+            else
+            {
+                buildUI.SetActive(!buildUI.activeSelf);
+                if (toBuild[1] == "Item" && toBuild[0] != "None")
+                {
+                    toBuild[0] = "None";
+                    activePreview.SetActive(false);
+                    activePreview = null;
+                }
+            }
         }
-        else if (Input.GetMouseButtonDown(0) && !EventSystem.current.IsPointerOverGameObject() && !buildUI.activeSelf)
+        else if (Input.GetMouseButtonDown(0) && !EventSystem.current.IsPointerOverGameObject() && !buildUI.activeSelf && toBuild[1] != "Item")
         {
             //selectionBox.sizeDelta = Vector2.zero;
             //selectionBox.gameObject.SetActive(true);
@@ -149,7 +170,7 @@ public class PlayerControls : MonoBehaviour
             LayerMask mask = LayerMask.GetMask("Active Layer");
             if (Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out hit, 300, mask) && hit.collider.GetComponentInParent<Cell>() != null)
             {
-                mouseStartPosition = hit.point;
+                mouseStartPosition = new Vector3(Mathf.Clamp(hit.point.x, 0, 99), hit.point.y, Mathf.Clamp(hit.point.z, 0, 99));
                 Debug.Log(hit.point);
                 Debug.Log(mouseStartPosition);
                 dragSelectStarted = true;
@@ -214,7 +235,7 @@ public class PlayerControls : MonoBehaviour
                         cell.ResetColor();
                     }
                 }
-                else if (toBuild[1] == "Item")
+                /*else if (toBuild[1] == "Item")
                 {
                     if (!orderCancelMode)
                     {
@@ -225,12 +246,40 @@ public class PlayerControls : MonoBehaviour
                         orders.Add(new ItemOrder(cell, toBuild[0], itemRotation));
                         //builderController.CancelOrder(new ItemOrder(cell, toBuild[0], itemRotation));
                     }
-                }
+                }*/
             }
             if (orders.Count != 0) builderController.CancelOrder(orders);
             selectedCells.Clear();
             orderCancelMode = false;
             dragSelectStarted = false;
+        }
+        else if (toBuild[1] == "Item" && toBuild[0] != "None")
+        {
+            if (Input.GetMouseButtonUp(0) && !EventSystem.current.IsPointerOverGameObject()) // this one should only be getting hit when we are placing items
+            {
+                if (activePreview.GetComponent<PlacementItem>().AttemptPlace()) //begin by attempting to place the item;
+                {
+                    if (!Input.GetKey(KeyCode.LeftShift)) //if the item is placed, check if left shift is not being held;
+                    {
+                        toBuild[0] = "None";
+                        activePreview.SetActive(false);
+                        activePreview = null;
+                    }
+                }
+            }
+            else if (Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out RaycastHit hit, float.MaxValue, LayerMask.GetMask("Active Layer")))
+            {
+                if (hit.collider.GetComponentInParent<Cell>() != null && hit.collider.GetComponentInParent<Cell>().TraitsContains("Traversable") || hit.collider.GetComponent<Ground>() != null)
+                {
+                    activePreview = previewItems[toBuild[0]];
+                    activePreview.SetActive(true);
+                    Vector3 point = hit.point;
+                    point.y += activePreview.transform.localScale.y / 2;
+                    activePreview.transform.position = point;
+                }
+                //else if (hit.collider.gameObject == previewItems[toBuild[0]]) Debug.Log("Yup, that was the issue");
+            }
+            else previewItems[toBuild[0]].SetActive(false);
         }
     }
 
@@ -561,7 +610,7 @@ public class PlayerControls : MonoBehaviour
                     {
                         //might want to object pool here to keep it cheaper
                         GameObject item = Instantiate(Resources.Load<GameObject>("Placeholder/" + toBuild[0]));
-                        previewItems.Add(temp, item);
+                        placedPreviewItems.Add(temp, item);
                     }
                 }
                 else
@@ -572,10 +621,10 @@ public class PlayerControls : MonoBehaviour
                     else
                     {
                         //again, probably a spot to object pool
-                        if (previewItems.ContainsKey(temp))
+                        if (placedPreviewItems.ContainsKey(temp))
                         {
-                            Destroy(previewItems[temp]);
-                            previewItems.Remove(temp);
+                            Destroy(placedPreviewItems[temp]);
+                            placedPreviewItems.Remove(temp);
                         }
                     }
                 }
@@ -642,8 +691,8 @@ public class PlayerControls : MonoBehaviour
                     foreach (Cell cell in toRemove) //if the cell is being removed, find the item preview for that cell and destroy it;
                     {
                         selectedCells.Remove(cell);
-                        Destroy(previewItems[cell]);
-                        previewItems.Remove(cell);
+                        Destroy(placedPreviewItems[cell]);
+                        placedPreviewItems.Remove(cell);
                     }
                 }
                 foreach (Cell cell in temp)
@@ -655,7 +704,7 @@ public class PlayerControls : MonoBehaviour
                             if (selectedCells.Add(cell)) //if a cell is newly added, create a preview of the item and add it to the dictionary
                             {
                                 GameObject preview = Instantiate(Resources.Load<GameObject>("Preview/" + toBuild[0]));
-                                previewItems.Add(cell, preview);
+                                placedPreviewItems.Add(cell, preview);
                                 preview.transform.parent = cell.transform;
                                 if (itemRotation == 0) //set the location in the cell depending on the rotation
                                 {

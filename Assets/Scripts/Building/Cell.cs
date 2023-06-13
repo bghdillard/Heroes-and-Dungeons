@@ -172,4 +172,9 @@ public class Cell : MonoBehaviour
         Debug.Log("Room was set");
         room = toSet;
     }
+
+    public override string ToString()
+    {
+        return gameObject.transform.position.ToString();
+    }
 }
