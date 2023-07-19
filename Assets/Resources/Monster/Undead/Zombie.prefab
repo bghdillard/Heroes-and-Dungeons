@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 601145177400685583}
   m_Layer: 0
   m_Name: Zombie
-  m_TagString: Untagged
+  m_TagString: Creature
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -156,7 +156,7 @@ MonoBehaviour:
   magicRegainMax: 60
   magicRegainMin: 30
   monsterName: Zombie
-  idleTimer: 10
+  idleTimer: 5
   selectionCircle: {fileID: 4253800846534375557}
 --- !u!1001 &5072928047821894920
 PrefabInstance:

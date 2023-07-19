@@ -84,9 +84,9 @@ public class Room : MonoBehaviour
     public virtual Vector3 GetRandomPoint() //used to get a random point in the room for creatures to idle towards;
     {
         Cell selected = cells[Random.Range(0, cells.Count)]; //start by getting a random cell in the room
-        Vector3 point = selected.GetLocation(); //then get a random point in that cell by getting its center
-        point.x += Random.Range(-0.49f, 0.49f); //then add or subtract a random value less than its full size to its x and z
-        point.z += Random.Range(-0.49f, 0.49f);
+        Vector3 point = selected.transform.position; //then get a random point in that cell by getting its transform
+        point.x += Random.Range(-0.99f, 0.99f); //then add or subtract a random value less than its full size to its x and z
+        point.z += Random.Range(-0.99f, 0.99f);
         return point;
     }
 

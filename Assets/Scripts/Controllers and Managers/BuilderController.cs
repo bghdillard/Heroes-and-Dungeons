@@ -42,33 +42,33 @@ public class BuilderController : MonoBehaviour
                     if (!builder.IsWorking())
                     {
                         Debug.Log("Now checking builder at: " + builder.transform.position);
-                        Vector3 center = toDo.GetLocation();
+                        Vector3 center = toDo.GetPosition();
                         string orderType = toDo.GetOrderType();
                         if (orderType == "cellBuild")
                         {
-                            for (int i = (int)center.x - 1; i < center.x + 2; i++) //A note to future me, this area is very likely to get very expensive;
+                            if (NavMesh.SamplePosition(center, out NavMeshHit hit, 3, -1)) //A note to future me, this area is very likely to get very expensive;
                             {
-                                if (NavMesh.CalculatePath(builder.transform.position, new Vector3(i, center.y, center.z), -1, path))
+                                NavMesh.CalculatePath(builder.transform.position, hit.position, -1, path);
+                                float distance = Vector3.Distance(builder.transform.position, path.corners[0]);
+                                for (int y = 1; y < path.corners.Length; y++)
                                 {
-                                    float distance = Vector3.Distance(builder.transform.position, path.corners[0]);
-                                    for (int y = 1; y < path.corners.Length; y++)
-                                    {
-                                        distance += Vector3.Distance(path.corners[y - 1], path.corners[y]);
-                                    }
-                                    Debug.Log("Final distance on this path is " + distance);
-                                    if (distance < closestDistance)
-                                    {
-                                        Debug.Log("Distance " + distance + " is less than current closest " + closestDistance + ". Builder at " + builder.transform.position + " is new closest");
-                                        closestBuilder = builder;
-                                        closestDistance = distance;
-                                        target = new Vector3(i, center.y, center.z);
-                                    }
+                                    distance += Vector3.Distance(path.corners[y - 1], path.corners[y]);
+                                }
+                                Debug.Log("Final distance on this path is " + distance);
+                                if (distance < closestDistance)
+                                {
+                                    Debug.Log("Distance " + distance + " is less than current closest " + closestDistance + ". Builder at " + builder.transform.position + " is new closest");
+                                    closestBuilder = builder;
+                                    closestDistance = distance;
+                                    target = hit.position;
                                 }
                             }
+                            else Debug.LogError("SamplePosition will not work");
+                            /*
                             Debug.Log("Closest distance moving to z is: " + closestDistance);
-                            for (int i = (int)center.z - 1; i < center.z + 2; i++)
+                            for (int i = -1; i < 2; i += 2)
                             {
-                                if (NavMesh.CalculatePath(builder.transform.position, new Vector3(center.x, center.y, i), -1, path))
+                                if (NavMesh.CalculatePath(builder.transform.position, new Vector3(center.x, center.y, center.z + i + (0.1f * i)), -1, path))
                                 {
                                     float distance = Vector3.Distance(builder.transform.position, path.corners[0]);
                                     for (int y = 1; y < path.corners.Length; y++)
@@ -81,14 +81,15 @@ public class BuilderController : MonoBehaviour
                                         Debug.Log("Distance " + distance + " is less than current closest " + closestDistance + ". Builder at " + builder.transform.position + " is new closest");
                                         closestBuilder = builder;
                                         closestDistance = distance;
-                                        target = new Vector3(center.x, center.y, i);
+                                        target = new Vector3(center.x, center.y, center.z + i + (0.1f * i));
                                     }
                                 }
                             }
+                            */
                         }
                         else if (orderType == "itemBuild")// for item building, we just need to check the item location to find the closest builder;
                         {
-                            if(NavMesh.CalculatePath(builder.transform.position, center, -1, path))
+                            if (NavMesh.CalculatePath(builder.transform.position, center, -1, path))
                             {
                                 float distance = Vector3.Distance(builder.transform.position, path.corners[0]);
                                 for (int y = 1; y < path.corners.Length; y++)
@@ -105,6 +106,7 @@ public class BuilderController : MonoBehaviour
                                 }
                             }
                         }
+                        else Debug.Log("NoOrderType");
                     }
                 }
                 if (closestBuilder != null)
@@ -128,7 +130,7 @@ public class BuilderController : MonoBehaviour
                 {
                     if (!builder.IsWorking())
                     {
-                        float distance = Vector3.Distance(builder.transform.position, toDo.GetLocation());
+                        float distance = Vector3.Distance(builder.transform.position, toDo.GetPosition());
                         if (distance < closestDistance)
                         {
                             closestBuilder = builder;
@@ -138,7 +140,7 @@ public class BuilderController : MonoBehaviour
                 }
                 if (closestBuilder != null)
                 {
-                    closestBuilder.SetOrder(toDo, toDo.GetLocation());
+                    closestBuilder.SetOrder(toDo, toDo.GetPosition());
                     activeOrders.Add(toDo);
                     builderOrders.Add(toDo, closestBuilder);
                 }
@@ -237,12 +239,12 @@ public class BuilderController : MonoBehaviour
         activeOrders.Add(toClaim);
     }
 
-    public Vector3 GetClosestPath(Vector3 target, Builder builder)
+    /*public Vector3 GetClosestPath(Vector3 target, Builder builder)
     {
         NavMeshPath path = new NavMeshPath();
         float closestDistance = float.MaxValue;
         Vector3 destination = new Vector3();
-        for (int i = (int)target.x - 1; i < target.x + 2; i++) //A note to future me, this area is very likely to get very expensive;
+        for (int i = (int)target.x - 1; i < (int)target.x + 2; i += 2) //A note to future me, this area is very likely to get very expensive;
         {
             Debug.Log("Test x");
             if (NavMesh.CalculatePath(builder.transform.position, new Vector3(i, target.y, target.z), -1, path))
@@ -263,7 +265,7 @@ public class BuilderController : MonoBehaviour
             }
         }
         Debug.Log("Closest distance moving to z is: " + closestDistance);
-        for (int i = (int)target.z - 1; i < target.z + 2; i++)
+        for (int i = (int)target.z - 1; i < (int)target.z + 2; i += 2)
         {
             Debug.Log("Test z");
             if (NavMesh.CalculatePath(builder.transform.position, new Vector3(target.x, target.y, i), -1, path))
@@ -285,7 +287,7 @@ public class BuilderController : MonoBehaviour
         }
         Debug.Log(destination);
         return destination;
-    }
+    }*/
 
     public void DoClaimStutter() //prevent an order being claimed twice by preventing the order update on a frame when a builder might be making a claim itself
     {

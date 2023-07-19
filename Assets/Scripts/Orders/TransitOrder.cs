@@ -19,6 +19,11 @@ public class TransitOrder : IOrder
         time = Time.time;
     }
 
+    public Vector3 GetPosition()
+    {
+        return GetLocation();
+    }
+
     public Vector3 GetLocation()
     {
         return initialTarget.transform.position;

@@ -170,7 +170,7 @@ public class PlayerControls : MonoBehaviour
             LayerMask mask = LayerMask.GetMask("Active Layer");
             if (Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out hit, 300, mask) && hit.collider.GetComponentInParent<Cell>() != null)
             {
-                mouseStartPosition = new Vector3(Mathf.Clamp(hit.point.x, 0, 99), hit.point.y, Mathf.Clamp(hit.point.z, 0, 99));
+                mouseStartPosition = new Vector3(Mathf.Clamp(hit.point.x, 0, 198)/2, hit.point.y, Mathf.Clamp(hit.point.z, 0, 198)/2);
                 Debug.Log(hit.point);
                 Debug.Log(mouseStartPosition);
                 dragSelectStarted = true;
@@ -640,10 +640,10 @@ public class PlayerControls : MonoBehaviour
         if (Physics.Raycast(camera.ScreenPointToRay(Input.mousePosition), out hit, 300, mask))
         {
             Vector3 location = hit.point; //get the current position of the mouse, and correct it to be within the bounds of the array if needed
-            int x = Mathf.RoundToInt(location.x);
+            int x = Mathf.RoundToInt(location.x/2);
             if (x < 0) x = 0;
             else if (x > 99) x = 99;
-            int z = Mathf.RoundToInt(location.z);
+            int z = Mathf.RoundToInt(location.z/2);
             if (z < 0) z = 0;
             else if (z > 99) z = 99;
             HashSet<Cell> temp = new HashSet<Cell>();

@@ -26,6 +26,11 @@ public class ItemOrder : IOrder
         foreach (Cell cell in cells) cell.SetOrder(this);
     }
 
+    public Vector3 GetPosition()
+    {
+        return GetLocation();
+    }
+
     public Vector3 GetLocation()
     {
         return location;

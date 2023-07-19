@@ -16,6 +16,9 @@ public class Cell : MonoBehaviour
     private List<Color> orderColors;
     [SerializeField]
     private List<Renderer> renderers;
+
+    private Vector3 location; //location refers to the cells location in the grid;
+
     private Dictionary<Renderer, Material[]> sharedMaterials;
     private IOrder order;
     private Room room;
@@ -30,7 +33,7 @@ public class Cell : MonoBehaviour
 
     public void CheckRoomStatus()
     {
-        List<Cell> adjacentCells = GridManager.GetAdjacent(transform.position);
+        List<Cell> adjacentCells = GridManager.GetAdjacent(location);
         List<Room> adjacentRooms = new List<Room>();
         foreach (Cell cell in adjacentCells)
         {
@@ -83,9 +86,14 @@ public class Cell : MonoBehaviour
         return cellName;
     }
 
+    public void SetLocation(Vector3 toSet)
+    {
+        location = toSet;
+    }
+
     public Vector3 GetLocation()
     {
-        return gameObject.transform.position;
+        return location;
     }
 
     public List<GameObject> GetItems()

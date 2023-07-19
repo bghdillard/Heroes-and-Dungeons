@@ -7,18 +7,18 @@ public class PlacementItem : Item
     [SerializeField]
     private BuilderController builderController;
     [SerializeField]
-    private List<Renderer> renderers;
-    private bool placeable = false;
+    protected List<Renderer> renderers;
+    protected bool placeable = false;
     private int numTriggers = 0;
     private List<Cell> cells = new List<Cell>();
 
-    private void OnTriggerEnter(Collider other)
+    protected void OnTriggerEnter(Collider other)
     {
-        if(other.tag != "Roof"){
+        if(other.tag != "Roof" && other.tag != "PlacementItem"){
             numTriggers++;
             Debug.Log("Entering trigger, trigger count is now: " + numTriggers);
             Cell cell = other.GetComponentInParent<Cell>();
-            if (other.tag != "Wall" && cell != null && cell.TraitsContains(itemType))
+            if (other.tag != "Wall" && cell != null && (cell.TraitsContains(itemType) || itemType =="all"))
             {
                 cells.Add(cell);
                 Debug.Log("Entering cell, cell count is now: " + cells.Count);
@@ -52,14 +52,14 @@ public class PlacementItem : Item
         }
     }
 
-    private void OnTriggerExit(Collider other)
+    protected void OnTriggerExit(Collider other)
     {
-        if (other.tag != "Roof")
+        if (other.tag != "Roof" && other.tag != "PlacementItem")
         {
             numTriggers--;
             Debug.Log("Leaving Trigger, trigger count is now: " + numTriggers);
             Cell cell = other.GetComponentInParent<Cell>();
-            if (other.tag != "Wall" && cell != null && cell.TraitsContains(itemType))
+            if (other.tag != "Wall" && cell != null && (cell.TraitsContains(itemType) || itemType == "all"))
             {
                 cells.Remove(cell);
                 Debug.Log("Leaving Cell, cell count is now: " + cells.Count);
@@ -98,7 +98,7 @@ public class PlacementItem : Item
         cells.Clear();
     }
 
-    public bool AttemptPlace()
+    public virtual bool AttemptPlace()
     {
         if (placeable)
         {

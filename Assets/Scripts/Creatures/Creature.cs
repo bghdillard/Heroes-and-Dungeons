@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 public abstract class Creature : BehaviorTree.Tree
 {
@@ -55,6 +56,42 @@ public abstract class Creature : BehaviorTree.Tree
     protected List<Creature> friends;
     protected List<Creature> enemies;
     #endregion
+
+    protected NavMeshAgent agent;
+
+    protected override void Start()
+    {
+        base.Start();
+        agent = GetComponent<NavMeshAgent>();
+    }
+
+    protected void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Door"))
+        {
+            float creatureDot = Vector3.Dot(other.transform.forward, (transform.position - other.transform.position).normalized);
+            float targetDot = Vector3.Dot(other.transform.forward, (agent.steeringTarget - other.transform.position).normalized);
+            if (creatureDot < 0 && targetDot > 0 || creatureDot > 0 && targetDot < 0)
+            {
+                Debug.Log("Moving through door");
+                other.transform.GetComponent<Door>().Open(creatureDot);
+            }
+        }
+    }
+
+    protected void OnTriggerStay(Collider other)
+    {
+        if (other.CompareTag("Door"))
+        {
+            float creatureDot = Vector3.Dot(other.transform.forward, (transform.position - other.transform.position).normalized);
+            float targetDot = Vector3.Dot(other.transform.forward, (agent.steeringTarget - other.transform.position).normalized);
+            if (creatureDot < 0 && targetDot > 0 || creatureDot > 0 && targetDot < 0)
+            {
+                Debug.Log("Moving through door");
+                other.transform.GetComponent<Door>().Open(creatureDot);
+            }
+        }
+    }
 
     public virtual void HealMaxHealth(int toHeal)
     {

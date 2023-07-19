@@ -6,6 +6,7 @@ public class CellOrder : IOrder
 {
     private readonly string orderType = "cellBuild";
     Cell target;
+    Vector3 position;
     Vector3 location;
     string toBuild;
     bool isStarted;
@@ -15,11 +16,17 @@ public class CellOrder : IOrder
     {
         this.target = target;
         this.toBuild = toBuild;
-        location = target.transform.position;
+        position = target.transform.position;
+        location = target.GetLocation();
         isStarted = false;
         time = Time.time;
         target.SetOrder(this);
         Debug.Log("Order created at " + Time.time);
+    }
+
+    public Vector3 GetPosition()
+    {
+        return position;
     }
 
     public Vector3 GetLocation()

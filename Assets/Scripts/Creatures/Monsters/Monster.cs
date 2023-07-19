@@ -59,7 +59,7 @@ public abstract class Monster : Creature
     private string order;
     private bool targetChanged;
 
-    private NavMeshAgent agent;
+    //private NavMeshAgent agent;
     private Vector3 target;
 
     private Restorative item; //again, I'm thinking I might want to make an item base class

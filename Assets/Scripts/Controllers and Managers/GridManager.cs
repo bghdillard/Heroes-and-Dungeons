@@ -127,6 +127,7 @@ public class GridManager : MonoBehaviour
 
     public static void UpdateGrid(Cell toUpdate, string toFetch) //Changes the cell in toUpdate with the one stored in toFetch
     {
+        Vector3 position = toUpdate.transform.position;
         Vector3 location = toUpdate.GetLocation();
         int x =  (int)location.x;
         int y = (int) location.y;
@@ -134,7 +135,8 @@ public class GridManager : MonoBehaviour
         GameObject temp = Instantiate(Resources.Load<GameObject>("Cells/" + toFetch));//, cellHolder.transform);
         Cell cell = temp.GetComponent<Cell>();
         grid[x, y, z] = cell;
-        temp.transform.position = location;
+        cell.SetLocation(location);
+        temp.transform.position = position;
         if (y == activeLayer)
         {
             Debug.Log("Built on ActiveLayer");

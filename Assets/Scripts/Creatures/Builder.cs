@@ -30,10 +30,9 @@ public class Builder : MonoBehaviour
         if (recalculateOrderPath)
         {
             Debug.Log("Recalculating order path");
-            Vector3 temp = builderController.GetClosestPath(CurrOrder.GetLocation(), this);
-            if (!temp.Equals(new Vector3()))
+            if (NavMesh.SamplePosition(CurrOrder.GetPosition(), out NavMeshHit hit, 3, -1))
             {
-                agent.SetDestination(temp);
+                agent.SetDestination(hit.position);
                 recalculateOrderPath = false;
             }
         }
@@ -131,7 +130,12 @@ public class Builder : MonoBehaviour
             {
                 Debug.Log("Only one adjacent");
                 builderController.ClaimOrder(cells[0].GetOrder(), this);
-                SetOrder(cells[0].GetOrder(), builderController.GetClosestPath(cells[0].GetOrder().GetLocation(), this));
+                if (NavMesh.SamplePosition(cells[0].GetOrder().GetPosition(), out NavMeshHit hit, 3, -1)) SetOrder(cells[0].GetOrder(), hit.position);
+                else
+                {
+                    recalculateOrderPath = true;
+                    SetOrder(cells[0].GetOrder(), new Vector3());
+                }
             }
             else
             {
@@ -185,7 +189,12 @@ public class Builder : MonoBehaviour
                     }
                 }
                 builderController.ClaimOrder(currSelected.GetOrder(), this);
-                SetOrder(currSelected.GetOrder(), builderController.GetClosestPath(currSelected.GetOrder().GetLocation(), this));
+                if(NavMesh.SamplePosition(currSelected.GetOrder().GetPosition(), out NavMeshHit hit, 3, -1)) SetOrder(currSelected.GetOrder(), hit.position);
+                else
+                {
+                    recalculateOrderPath = true;
+                    SetOrder(currSelected.GetOrder(), new Vector3());
+                }
             }
         }
         else CurrOrder = null;
@@ -248,7 +257,8 @@ public class Builder : MonoBehaviour
         ItemOrder temp = (ItemOrder)CurrOrder;
         GridManager.UpdateItemGrid(temp.GetCells(), temp.GetToBuild(), temp.GetLocation(),temp.GetRotation());//now that we're done, remove the order and add the item
         builderController.RemoveOrder(CurrOrder);
-        tryClaim = true; //now that we're done building, try to claim a new adjacent order
+        //tryClaim = true; //now that we're done building, try to claim a new adjacent order
+        CurrOrder = null;
         builderController.DoClaimStutter();
         Debug.Log("Build Item End");
     }
